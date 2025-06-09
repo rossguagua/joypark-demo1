@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>酒宝公园 - 游戏库</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #151515;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .game-card:active {
+            transform: translateY(-2px);
+        }
+        
+        .main-container {
+            padding-top: 20px;
+            padding-bottom: 40px;
+            min-height: 100vh;
+        }
+        
+        .logo-section {
+            padding: 32px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #151515;
+        }
+        
+        .main-game-section {
+            padding: 0 24px 24px 24px;
+            max-width: 390px;
+            margin: 0 auto;
+        }
+        
+        .main-game-card {
+            width: 100%;
+            height: 200px;
+            border-radius: 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-bottom: 0;
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 0 24px;
+            max-width: 390px;
+            margin: 0 auto;
+        }
+        
+        .game-card-content {
+            width: 100%;
+            height: 240px;
+            border-radius: 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0;
+            color: white;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .game-title {
+            font-size: 18px;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .game-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .logo-image {
+            max-width: 140px;
+            max-height: 100px;
+            object-fit: contain;
+        }
+        
+        .coming-soon {
+            opacity: 0.7;
+            position: relative;
+        }
+        
+        .coming-soon::after {
+            content: "即将推出";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        /* Text overlay for better readability on images */
+        .game-text-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 16px;
+            border-radius: 0 0 16px 16px;
+        }
+
+        /* Ensure smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Main game fallback styling */
+        .main-game-fallback {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff3838 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .main-game-title {
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-game-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(21, 21, 21, 0.95) 0%, rgba(40, 40, 40, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 340px;
+            width: 100%;
+            color: white;
+            position: relative;
+            transform: translateY(30px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            padding: 24px 24px 20px 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-logo {
+            max-width: 100px;
+            max-height: 60px;
+            object-fit: contain;
+            margin-bottom: 12px;
+            filter: brightness(1.1) contrast(1.1);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-description {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+        }
+
+        .modal-features {
+            margin-bottom: 20px;
+        }
+
+        .modal-features h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .feature-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .feature-tag {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff9999;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .modal-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-start {
+            flex: 1;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-start:active {
+            transform: translateY(0);
+        }
+
+        .btn-start:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .coming-soon-badge {
+            display: inline-block;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-[#151515] text-white">
+    <!-- Game Preview Modal -->
+    <div id="gameModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                
+                <img src="images/logo.png" alt="酒宝公园" class="modal-logo">
+                <div id="modalTitle" class="modal-title">游戏标题</div>
+            </div>
+            
+            <div class="modal-body">
+                <div id="modalDescription" class="modal-description">游戏描述</div>
+                
+                <div class="modal-features">
+                    <h4>游戏特色</h4>
+                    <div id="modalFeatures" class="feature-tags">
+                        <!-- Features will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="modal-info">
+                    <div class="info-item">
+                        <div class="info-label">适合人数</div>
+                        <div id="modalPlayers" class="info-value">2-8人</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">游戏时长</div>
+                        <div id="modalDuration" class="info-value">15-30分钟</div>
+                    </div>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button id="startGameBtn" class="btn-start" onclick="startSelectedGame()">
+                        开始游戏
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="main-container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="images/logo.png" alt="酒宝公园" class="logo-image">
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-400">正在加载游戏...</p>
+        </div>
+
+        <!-- Main Game Section -->
+        <div id="mainGameSection" class="main-game-section" style="display: none;">
+            <!-- Main game will be populated here -->
+        </div>
+
+        <!-- Game Grid -->
+        <div id="gameGrid" class="game-grid" style="display: none;">
+            <!-- Other games will be populated here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { getGames } from './src/lib/supabase.ts'
+
+        let gamesData = [];
+        let selectedGameId = null;
+
+        // 本地化游戏封面图片映射 - 根据category_tag拼接本地路径
+        function getGameCoverPath(categoryTag) {
+            // 为 drinking-topics 使用特殊处理，因为它没有对应的封面图片
+            if (categoryTag === 'drinking-topics') {
+                return null; // 返回 null，让主游戏使用渐变背景
+            }
+            
+            // 具体的category_tag到文件名的映射
+            const coverMapping = {
+                'ice-breaker-box': 'battle-royale.png',
+                'party-psychology': 'party-psychology.png',
+                'poker': 'poker.png',
+                'love-battle': 'love-battle.png',
+                'moon-night': 'moon-night.png',
+                'man-di-piao-ling': 'man-di-piao-ling.png',
+                'kiss-marks': 'kiss-marks.png',
+                'wisdom': 'wisdom.png'
+            };
+            
+            // 如果有具体映射，使用映射的文件名；否则尝试直接使用category_tag
+            const fileName = coverMapping[categoryTag] || `${categoryTag}.png`;
+            return `images/covers/${fileName}`;
+        }
+
+        // 优化后的游戏加载函数 - 只获取核心数据，不包含图片URL
+        async function loadGames() {
+            try {
+                console.log('Loading games from database...');
+                const startTime = performance.now();
+                
+                // 只获取游戏基础信息，不包含卡片数据和图片URL
+                const games = await getGames();
+                
+                const loadTime = performance.now() - startTime;
+                console.log(`Games loaded in ${loadTime.toFixed(2)}ms:`, games);
+                
+                gamesData = games;
+                renderGames();
+            } catch (error) {
+                console.error('Error loading games:', error);
+                console.log('Falling back to test data...');
+                
+                // Fallback测试数据 - 用于测试图片加载功能
+                gamesData = [
+                    {
+                        id: '1',
+                        name: '聊天破冰盲盒',
+                        category_tag: 'drinking-topics',
+                        description: '打破沉默，开启话题',
+                        features: ['破冰利器', '话题丰富', '氛围轻松'],
+                        players: '2-8人',
+                        duration: '15-30分钟',
+                        is_active: true,
+                        created_at: new Date().toISOString()
+                    },
+                    {
+                        id: '2',
+                        name: '心理测试游戏',
+                        category_tag: 'party-psychology',
+                        description: '趣味心理测试',
+                        features: ['心理测试', '趣味互动'],
+                        players: '2-6人',
+                        duration: '20-40分钟',
+                        is_active: true,
+                        created_at: new Date().toISOString()
+                    },
+                    {
+                        id: '3',
+                        name: '德州扑克',
+                        category_tag: 'poker',
+                        description: '经典扑克游戏',
+                        features: ['策略游戏', '经典玩法'],
+                        players: '3-8人',
+                        duration: '30-60分钟',
+                        is_active: true,
+                        created_at: new Date().toISOString()
+                    }
+                ];
+                
+                renderGames();
+                
+                // 显示错误提示，但不阻止页面功能
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="text-center py-4 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
+                        <p class="text-yellow-400 text-sm mb-2">⚠️ 数据库连接失败，正在使用测试数据</p>
+                        <p class="text-gray-400 text-xs">请检查Supabase配置后刷新页面</p>
+                        <button onclick="location.reload()" class="bg-yellow-500 text-black px-3 py-1 rounded text-xs mt-2">重试连接</button>
+                    </div>
+                `;
+                document.getElementById('loadingState').style.display = 'block';
+            }
+        }
+
+        // 渲染游戏列表 - 使用本地图片路径
+        function renderGames() {
+            const loadingState = document.getElementById('loadingState');
+            const mainGameSection = document.getElementById('mainGameSection');
+            const gameGrid = document.getElementById('gameGrid');
+
+            // 隐藏加载状态（如果没有显示错误信息）
+            if (!loadingState.innerHTML.includes('数据库连接失败')) {
+                loadingState.style.display = 'none';
+            }
+
+            // 找到主要游戏（聊天破冰盲盒）
+            const mainGame = gamesData.find(game => game.category_tag === 'drinking-topics');
+            if (mainGame) {
+                // 主游戏使用渐变背景，不使用图片
+                mainGameSection.innerHTML = `
+                    <div class="game-card" onclick="showGamePreview('${mainGame.category_tag}')">
+                        <div class="main-game-card main-game-fallback">
+                            <div class="main-game-title">${mainGame.name}</div>
+                            <div class="main-game-subtitle">${mainGame.description || ''}</div>
+                        </div>
+                    </div>
+                `;
+                mainGameSection.style.display = 'block';
+            }
+
+            // 渲染其他游戏 - 使用本地图片路径
+            const otherGames = gamesData.filter(game => game.category_tag !== 'drinking-topics');
+            gameGrid.innerHTML = otherGames.map(game => {
+                // 根据category_tag拼接本地图片路径
+                const imagePath = getGameCoverPath(game.category_tag);
+                const isComingSoon = game.category_tag !== 'drinking-topics';
+                
+                // 如果图片路径为null，使用fallback样式
+                if (!imagePath) {
+                    return `
+                        <div class="game-card ${isComingSoon ? 'coming-soon' : ''}" onclick="showGamePreview('${game.category_tag}')">
+                            <div class="game-card-content main-game-fallback" style="height: 240px;">
+                                <div style="padding: 16px; text-align: center;">
+                                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${game.name || ''}</div>
+                                    <div style="font-size: 12px; opacity: 0.8;">${game.description || ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="game-card ${isComingSoon ? 'coming-soon' : ''}" onclick="showGamePreview('${game.category_tag}')">
+                        <div class="game-card-content" 
+                             style="background-image: url('${imagePath}');">
+                            <!-- 添加图片加载错误处理 -->
+                            <img src="${imagePath}" 
+                                 style="display: none;" 
+                                 onerror="this.parentElement.style.backgroundImage='none'; this.parentElement.classList.add('main-game-fallback'); this.parentElement.innerHTML='<div style=\\'padding: 16px; text-align: center;\\'><div style=\\'font-size: 16px; font-weight: bold; margin-bottom: 4px;\\'>${game.name || ''}</div><div style=\\'font-size: 12px; opacity: 0.8;\\'>${game.description || ''}</div></div>';">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            gameGrid.style.display = 'grid';
+        }
+
+        // 显示游戏预览
+        window.showGamePreview = function(categoryTag) {
+            console.log('Showing preview for game:', categoryTag);
+            selectedGameId = categoryTag;
+            const game = gamesData.find(g => g.category_tag === categoryTag);
+            
+            if (!game) {
+                console.error('Game not found:', categoryTag);
+                alert('游戏信息未找到，请刷新页面重试');
+                return;
+            }
+
+            // 填充模态框内容 - 增加数据验证
+            document.getElementById('modalTitle').textContent = game.name || '未知游戏';
+            document.getElementById('modalDescription').textContent = game.description || '暂无描述';
+            document.getElementById('modalPlayers').textContent = game.players || '未知';
+            document.getElementById('modalDuration').textContent = game.duration || '未知';
+
+            // 填充特色标签 - 增强错误处理
+            const featuresContainer = document.getElementById('modalFeatures');
+            featuresContainer.innerHTML = '';
+            if (game.features && Array.isArray(game.features) && game.features.length > 0) {
+                game.features.forEach(feature => {
+                    if (feature && feature.trim()) {
+                        const tag = document.createElement('span');
+                        tag.className = 'feature-tag';
+                        tag.textContent = feature.trim();
+                        featuresContainer.appendChild(tag);
+                    }
+                });
+            } else {
+                // 如果没有特色标签，显示默认信息
+                const defaultTag = document.createElement('span');
+                defaultTag.className = 'feature-tag';
+                defaultTag.textContent = '休闲娱乐';
+                defaultTag.style.opacity = '0.6';
+                featuresContainer.appendChild(defaultTag);
+            }
+
+            // 更新开始按钮
+            const startBtn = document.getElementById('startGameBtn');
+            const isAvailable = categoryTag === 'drinking-topics';
+            
+            if (isAvailable) {
+                startBtn.textContent = '开始游戏';
+                startBtn.disabled = false;
+                startBtn.className = 'btn-start';
+                // 移除即将推出标签
+                const badge = document.getElementById('modalTitle').querySelector('.coming-soon-badge');
+                if (badge) {
+                    badge.remove();
+                }
+            } else {
+                startBtn.textContent = '即将推出';
+                startBtn.disabled = true;
+                startBtn.className = 'btn-start opacity-50 cursor-not-allowed';
+                // 添加即将推出标签
+                const titleElement = document.getElementById('modalTitle');
+                if (!titleElement.querySelector('.coming-soon-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'coming-soon-badge bg-yellow-500 text-black text-xs px-2 py-1 rounded ml-2';
+                    badge.textContent = '即将推出';
+                    titleElement.appendChild(badge);
+                }
+            }
+
+            // 显示模态框
+            const modal = document.getElementById('gameModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭模态框
+        window.closeModal = function() {
+            const modal = document.getElementById('gameModal');
+            modal.classList.remove('active');
+            selectedGameId = null;
+            document.body.style.overflow = '';
+        }
+
+        // 开始选中的游戏
+        window.startSelectedGame = function() {
+            console.log('Starting game:', selectedGameId);
+            
+            if (!selectedGameId) {
+                console.error('No game selected');
+                return;
+            }
+            
+            // 只有聊天破冰盲盒可以启动
+            if (selectedGameId === 'drinking-topics') {
+                console.log('Navigating to drinking-game.html');
+                closeModal();
+                window.location.href = 'drinking-game.html';
+            } else {
+                console.log('Game is coming soon, not navigating');
+            }
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // ESC键关闭模态框
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 触摸反馈
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameCards = document.querySelectorAll('.game-card');
+            gameCards.forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-2px) scale(0.98)';
+                });
+                
+                card.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+        });
+
+        // 初始化应用
+        loadGames();
+    </script>
+</body>
+</html>
