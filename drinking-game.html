@@ -76,22 +76,20 @@
         transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
       }
 
-      /* 卡片向左滑出 */
-      .slide-left {
+      /* 整张卡片的滑动动画 */
+      #topic-card.slide-left {
         animation: slideLeftOut 0.5s ease-in-out forwards;
       }
 
-      /* 卡片向右滑出 */
-      .slide-right {
+      #topic-card.slide-right {
         animation: slideRightOut 0.5s ease-in-out forwards;
       }
 
-      /* 卡片从左侧滑入（用于"撤销"操作） */
-      .slide-in-from-left {
+      #topic-card.slide-in-from-left {
         animation: slideInFromLeft 0.5s ease-in-out forwards;
       }
 
-      /* 动画关键帧 */
+      /* 动画关键帧 - 修改为整卡移动 */
       @keyframes slideLeftOut {
         to {
           transform: translateX(-120%) scale(0.8);
@@ -112,7 +110,7 @@
           opacity: 0;
         }
         to {
-          transform: translateY(0px) scale(1);
+          transform: translateX(0) scale(1);
           opacity: 1;
         }
       }
@@ -455,7 +453,7 @@
         </div>
 
         <div class="swipe-hint">
-          👈右滑撤销 | 左滑前进👉 | 点击获取话题
+          👈左滑撤销 | 右滑前进👉 | 点击获取话题
         </div>
       </div>
     </div>
@@ -666,45 +664,42 @@
         if (isAnimating) return;
         isAnimating = true;
 
-        const outgoingCard = document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`);
-
         if (direction === 'right') {
-          // --- 逻辑1：向右滑 → 下一张 ---
+          // --- 逻辑1：向右滑 → 前进到下一张 ---
 
-          // 1. 让顶层卡片向右滑出
-          outgoingCard.classList.add('slide-right');
+          // 1. 让整张卡片向右滑出
+          topicCardElement.classList.add('slide-right');
 
-          // 2. 立即开始下方卡片的移动
-          setTimeout(() => {
-            const newOrder = [...cardOrder];
-            newOrder.push(newOrder.shift());
-            renderCardStack(newOrder, false); // 预渲染，但不改变状态
-          }, 50);
-
-          // 3. 动画结束后，更新状态并清理
-          outgoingCard.addEventListener('animationend', () => {
-            cardOrder.push(cardOrder.shift()); // 将第一张移动到末尾
-            renderCardStack();                 // 根据新顺序重置所有卡片样式
+          // 2. 动画结束后，更新状态并重新渲染
+          topicCardElement.addEventListener('animationend', () => {
+            // 移除动画类
+            topicCardElement.classList.remove('slide-right');
+            
+            // 更新卡片顺序：将第一张移动到末尾
+            cardOrder.push(cardOrder.shift());
+            
+            // 重新渲染卡片堆栈
+            renderCardStack();
             updateTopCardText();
             isAnimating = false;
           }, { once: true });
 
         } else { // direction === 'left'
-          // --- 逻辑2：向左滑 ← 上一张 (撤销) ---
+          // --- 逻辑2：向左滑 ← 撤销到上一张 ---
           
-          const incomingCardCategory = cardOrder[cardOrder.length - 1];
-          const incomingCard = document.querySelector(`.stacked-card[data-category='${incomingCardCategory}']`);
+          // 1. 让整张卡片向左滑出
+          topicCardElement.classList.add('slide-left');
 
-          // 1. 让当前顶层卡片向右滑走，为从左边来的新卡片腾出位置
-          outgoingCard.classList.add('slide-right');
-          
-          // 2. 让牌组的最后一张牌从左侧滑入
-          incomingCard.classList.add('slide-in-from-left');
-
-          // 3. 在"入场"动画结束后，更新状态并清理
-          incomingCard.addEventListener('animationend', () => {
-            cardOrder.unshift(cardOrder.pop()); // 将最后一张移动到开头
-            renderCardStack();                  // 根据新顺序重置所有卡片样式
+          // 2. 动画结束后，更新状态并重新渲染
+          topicCardElement.addEventListener('animationend', () => {
+            // 移除动画类
+            topicCardElement.classList.remove('slide-left');
+            
+            // 更新卡片顺序：将最后一张移动到开头
+            cardOrder.unshift(cardOrder.pop());
+            
+            // 重新渲染卡片堆栈
+            renderCardStack();
             updateTopCardText();
             isAnimating = false;
           }, { once: true });
@@ -874,11 +869,11 @@
         // 只有当水平滑动距离大于垂直滑动距离且达到最小阈值时才响应
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
           if (deltaX > 0) {
-            // 右滑：撤销到上一张（末尾卡片移到顶部）
-            handleSwipe('left');
-          } else {
-            // 左滑：前进到下一张（顶层卡片移到末尾）
+            // 右滑：前进到下一张（顶层卡片移到末尾）
             handleSwipe('right');
+          } else {
+            // 左滑：撤销到上一张（末尾卡片移到顶部）
+            handleSwipe('left');
           }
         } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
           // 如果是轻点而非滑动，显示新话题
@@ -907,11 +902,11 @@
 
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
           if (deltaX > 0) {
-            // 右滑：撤销到上一张
-            handleSwipe('left');
-          } else {
-            // 左滑：前进到下一张
+            // 右滑：前进到下一张
             handleSwipe('right');
+          } else {
+            // 左滑：撤销到上一张
+            handleSwipe('left');
           }
         } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
           displayNewTopic();
