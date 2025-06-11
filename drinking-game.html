@@ -280,20 +280,6 @@
         background: rgba(255, 255, 255, 0.2);
       }
 
-      /* Progress indicator */
-      .progress-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        z-index: 10;
-      }
-
       .loading-spinner {
         display: inline-block;
         width: 20px;
@@ -338,15 +324,10 @@
         id="topic-card"
         class="w-full h-[500px] rounded-xl flex flex-col items-center justify-between cursor-pointer transition-colors duration-300 ease-in-out"
       >
-        <!-- Progress Indicator -->
-        <div id="progressIndicator" class="progress-indicator">
-          0/0
-        </div>
-
         <div id="category-selectors-container">
           <div
             data-category-id="surprise"
-            class="category-selector w-[264px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #ffc9dc"
           >
             <div
@@ -362,7 +343,7 @@
           </div>
           <div
             data-category-id="intense"
-            class="category-selector w-[280px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #b8b4ff"
           >
             <div
@@ -378,7 +359,7 @@
           </div>
           <div
             data-category-id="ontheedge"
-            class="category-selector w-[296px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #a0e7e5"
           >
             <div
@@ -394,7 +375,7 @@
           </div>
           <div
             data-category-id="mildmode"
-            class="category-selector w-[316px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #c8fd0b"
           >
             <div
@@ -502,7 +483,6 @@
       const topicCardElement = document.getElementById('topic-card');
       const topicTextElement = document.getElementById('topic-text');
       const refreshButton = document.getElementById('refresh-button');
-      const progressIndicator = document.getElementById('progressIndicator');
       const categorySelectors = Array.from(
         document.querySelectorAll('.category-selector')
       );
@@ -537,10 +517,10 @@
       };
 
       const initialTabPositions = {
-        surprise: { left: 'calc(50% - 132px)' },
-        intense: { left: 'calc(50% - 140px)' },
-        ontheedge: { left: 'calc(50% - 148px)' },
-        mildmode: { left: 'calc(50% - 158px)' },
+        surprise: { left: 'calc(50% - 175px)' },
+        intense: { left: 'calc(50% - 175px)' },
+        ontheedge: { left: 'calc(50% - 175px)' },
+        mildmode: { left: 'calc(50% - 175px)' },
       };
 
       categorySelectors.forEach((sel) => {
@@ -625,15 +605,6 @@
         }
       }
 
-      function updateProgressIndicator() {
-        if (!cardIdsByCategory[currentCategoryId]) return;
-        
-        const totalCards = cardIdsByCategory[currentCategoryId].length;
-        const usedCount = usedCardIds[currentCategoryId] ? usedCardIds[currentCategoryId].length : 0;
-        
-        progressIndicator.textContent = `${usedCount}/${totalCards}`;
-      }
-
       async function displayNewTopic() {
         if (!cardIdsByCategory[currentCategoryId]) {
           topicTextElement.textContent = '话题数据未加载或类型不存在。';
@@ -657,7 +628,6 @@
             topicTextElement.textContent = card.content;
             topicTextElement.classList.remove('topic-fade-out');
             topicTextElement.classList.add('topic-fade-in');
-            updateProgressIndicator();
           } catch (error) {
             console.error('Error displaying new topic:', error);
             topicTextElement.textContent = '加载话题失败，请重试';
@@ -687,7 +657,6 @@
 
       window.restartCategory = function() {
         resetCategoryCards(currentCategoryId);
-        updateProgressIndicator();
         closeCompletionModal();
         
         // 显示重新开始消息
@@ -724,7 +693,6 @@
       function setActiveCategory(newCategoryId) {
         currentCategoryId = newCategoryId;
         updateTopicCardUnifiedStyle();
-        updateProgressIndicator();
         
         // 显示新分类的初始消息
         topicTextElement.classList.remove('topic-fade-in');
