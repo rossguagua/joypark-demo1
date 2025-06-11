@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase 配置 - 请在这里填入你的项目信息
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_PROJECT_URL'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://frqjqmwuznhjqukdmexg.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U'
 
 // 验证配置
-if (!supabaseUrl || supabaseUrl === 'YOUR_SUPABASE_PROJECT_URL' || 
-    !supabaseAnonKey || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+if (!supabaseUrl || supabaseUrl === 'https://frqjqmwuznhjqukdmexg.supabase.co' || 
+    !supabaseAnonKey || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U') {
   console.error('请配置 Supabase URL 和 ANON KEY')
   console.log('请将 src/lib/supabase.ts 中的占位符替换为你的实际 Supabase 项目信息')
   throw new Error('Missing Supabase configuration. Please update src/lib/supabase.ts with your project details.')

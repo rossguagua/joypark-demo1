@@ -118,6 +118,24 @@
         transform: translateX(-50%) translateY(0);
       }
 
+      /* 添加滑动提示样式 */
+      .swipe-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+        text-align: center;
+        animation: pulse-hint 3s infinite;
+        pointer-events: none;
+      }
+
+      @keyframes pulse-hint {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+
       /* Completion Modal Styles */
       .completion-modal {
         position: fixed;
@@ -420,6 +438,10 @@
             />
           </svg>
         </button>
+
+        <div class="swipe-hint">
+          ← 滑动切换类型 | 点击获取新话题 →
+        </div>
       </div>
     </div>
 
@@ -484,7 +506,8 @@
         document.querySelectorAll('.category-selector')
       );
 
-      const categoryVisualOrder = ['surprise', 'intense', 'ontheedge', 'mildmode'];
+      // 修正卡片视觉顺序，从前到后
+      const categoryVisualOrder = ['mildmode', 'ontheedge', 'intense', 'surprise'];
 
       const categoryNames = {
         'surprise': '盲盒 Surprise Me',
@@ -745,6 +768,80 @@
           return;
         }
         displayNewTopic();
+      });
+
+      // 滑动功能
+      let startX = 0;
+      let startY = 0;
+      let isDragging = false;
+
+      topicCardElement.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+      });
+
+      topicCardElement.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault(); // 防止页面滚动
+      });
+
+      topicCardElement.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+
+        // 只有当水平滑动距离大于垂直滑动距离且达到最小阈值时才响应
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+          const currentIndex = categoryVisualOrder.indexOf(currentCategoryId);
+          
+          if (deltaX > 0 && currentIndex > 0) {
+            // 右滑：向前一个类型
+            setActiveCategory(categoryVisualOrder[currentIndex - 1]);
+          } else if (deltaX < 0 && currentIndex < categoryVisualOrder.length - 1) {
+            // 左滑：向后一个类型
+            setActiveCategory(categoryVisualOrder[currentIndex + 1]);
+          }
+        } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
+          // 如果是轻点而非滑动，显示新话题
+          displayNewTopic();
+        }
+      });
+
+      // 鼠标事件（用于桌面端测试）
+      topicCardElement.addEventListener('mousedown', (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = true;
+      });
+
+      topicCardElement.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+      });
+
+      topicCardElement.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+          const currentIndex = categoryVisualOrder.indexOf(currentCategoryId);
+          
+          if (deltaX > 0 && currentIndex > 0) {
+            setActiveCategory(categoryVisualOrder[currentIndex - 1]);
+          } else if (deltaX < 0 && currentIndex < categoryVisualOrder.length - 1) {
+            setActiveCategory(categoryVisualOrder[currentIndex + 1]);
+          }
+        } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
+          displayNewTopic();
+        }
       });
 
       refreshButton.addEventListener('click', (e) => {

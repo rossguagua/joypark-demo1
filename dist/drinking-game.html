@@ -118,6 +118,24 @@
         transform: translateX(-50%) translateY(0);
       }
 
+      /* 添加滑动提示样式 */
+      .swipe-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+        text-align: center;
+        animation: pulse-hint 3s infinite;
+        pointer-events: none;
+      }
+
+      @keyframes pulse-hint {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+
       /* Completion Modal Styles */
       .completion-modal {
         position: fixed;
@@ -300,7 +318,7 @@
         margin: 20px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/game-BI7sDCxQ.js"></script>
+    <script type="module" crossorigin src="/assets/game-BXkgKaXf.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/supabase-Bwuv_4SX.js">
   </head>
   <body class="bg-[#151515] text-white">
@@ -422,6 +440,10 @@
             />
           </svg>
         </button>
+
+        <div class="swipe-hint">
+          ← 滑动切换类型 | 点击获取新话题 →
+        </div>
       </div>
     </div>
 
