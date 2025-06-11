@@ -118,21 +118,26 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* 添加滑动提示样式 */
+      /* 滑动提示样式 - 改为黑色更醒目，修复居中问题 */
       .swipe-hint {
         position: absolute;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 12px;
+        color: #888888;
+        font-size: 14px;
+        font-weight: 600;
         text-align: center;
         animation: pulse-hint 3s infinite;
         pointer-events: none;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        white-space: nowrap;
+        width: auto;
+        min-width: 280px;
       }
 
       @keyframes pulse-hint {
-        0%, 100% { opacity: 0.6; }
+        0%, 100% { opacity: 0.8; }
         50% { opacity: 1; }
       }
 
@@ -280,20 +285,6 @@
         background: rgba(255, 255, 255, 0.2);
       }
 
-      /* Progress indicator */
-      .progress-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        z-index: 10;
-      }
-
       .loading-spinner {
         display: inline-block;
         width: 20px;
@@ -318,7 +309,7 @@
         margin: 20px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/game-DkQuinpS.js"></script>
+    <script type="module" crossorigin src="/assets/game-CGqK8c3n.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/supabase-D1COVRbz.js">
   </head>
   <body class="bg-[#151515] text-white">
@@ -338,17 +329,12 @@
     <div id="gameContainer" class="container w-full max-w-[350px] p-4 flex flex-col items-center" style="display: none;">
       <div
         id="topic-card"
-        class="w-full h-[500px] rounded-xl flex flex-col items-center justify-between cursor-pointer transition-colors duration-300 ease-in-out"
+        class="w-[350px] h-[500px] rounded-xl flex flex-col items-center justify-between cursor-pointer transition-colors duration-300 ease-in-out"
       >
-        <!-- Progress Indicator -->
-        <div id="progressIndicator" class="progress-indicator">
-          0/0
-        </div>
-
         <div id="category-selectors-container">
           <div
             data-category-id="surprise"
-            class="category-selector w-[264px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #ffc9dc"
           >
             <div
@@ -364,7 +350,7 @@
           </div>
           <div
             data-category-id="intense"
-            class="category-selector w-[280px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #b8b4ff"
           >
             <div
@@ -380,7 +366,7 @@
           </div>
           <div
             data-category-id="ontheedge"
-            class="category-selector w-[296px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #a0e7e5"
           >
             <div
@@ -396,7 +382,7 @@
           </div>
           <div
             data-category-id="mildmode"
-            class="category-selector w-[316px] h-[100px]"
+            class="category-selector w-[350px] h-[100px]"
             style="background-color: #c8fd0b"
           >
             <div
@@ -420,29 +406,8 @@
           点击卡片开始
         </div>
 
-        <button
-          id="refresh-button"
-          aria-label="下一个话题"
-          class="bg-black rounded-full p-3 w-16 h-16 flex items-center justify-center text-white shadow-lg mb-6 z-50 hover:bg-gray-800 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-8 h-8"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
-          </svg>
-        </button>
-
         <div class="swipe-hint">
-          ← 滑动切换类型 | 点击获取新话题 →
+          👈滑动切换卡片获取新话题👉
         </div>
       </div>
     </div>
