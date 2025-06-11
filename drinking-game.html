@@ -118,21 +118,23 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* 添加滑动提示样式 */
+      /* 滑动提示样式 - 改为黑色更醒目 */
       .swipe-hint {
         position: absolute;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 12px;
+        color: #000000;
+        font-size: 14px;
+        font-weight: 600;
         text-align: center;
         animation: pulse-hint 3s infinite;
         pointer-events: none;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
       }
 
       @keyframes pulse-hint {
-        0%, 100% { opacity: 0.6; }
+        0%, 100% { opacity: 0.8; }
         50% { opacity: 1; }
       }
 
@@ -399,29 +401,8 @@
           点击卡片开始
         </div>
 
-        <button
-          id="refresh-button"
-          aria-label="下一个话题"
-          class="bg-black rounded-full p-3 w-16 h-16 flex items-center justify-center text-white shadow-lg mb-6 z-50 hover:bg-gray-800 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-8 h-8"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
-          </svg>
-        </button>
-
         <div class="swipe-hint">
-          ← 滑动切换类型 | 点击获取新话题 →
+          👈滑动切换卡片获取新话题👉
         </div>
       </div>
     </div>
@@ -482,7 +463,6 @@
 
       const topicCardElement = document.getElementById('topic-card');
       const topicTextElement = document.getElementById('topic-text');
-      const refreshButton = document.getElementById('refresh-button');
       const categorySelectors = Array.from(
         document.querySelectorAll('.category-selector')
       );
@@ -819,11 +799,6 @@
         } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
           displayNewTopic();
         }
-      });
-
-      refreshButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        displayNewTopic();
       });
 
       categorySelectors.forEach((selector) => {
