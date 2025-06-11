@@ -318,8 +318,348 @@
         margin: 20px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/game-BXkgKaXf.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/supabase-Bwuv_4SX.js">
+    <script type="module">
+      import { getGameByCategoryTag, getGameCardIds, getCardById } from '/src/lib/supabase.ts';
+
+      // 游戏状态
+      let gameData = null;
+      let currentCategory = 'mildmode';
+      let categoryData = {};
+      let currentCardIndex = {};
+      let usedCards = {};
+
+      // 类别配置
+      const categoryConfig = {
+        mildmode: {
+          name: '清汤 Mild Mode',
+          colors: {
+            bg: '#c8fd0b',
+            button: '#2df92a',
+            text: 'black'
+          }
+        },
+        ontheedge: {
+          name: '微辣 On the Edge',
+          colors: {
+            bg: '#a0e7e5',
+            button: '#ffc9dc',
+            text: '#560ee6'
+          }
+        },
+        intense: {
+          name: '加麻加辣 Intense',
+          colors: {
+            bg: '#b8b4ff',
+            button: '#342af6',
+            text: '#ff2470'
+          }
+        },
+        surprise: {
+          name: '盲盒 Surprise Me',
+          colors: {
+            bg: '#ffc9dc',
+            button: '#f93c7e',
+            text: '#2df92a'
+          }
+        }
+      };
+
+      // DOM 元素
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const gameContainer = document.getElementById('gameContainer');
+      const topicCard = document.getElementById('topic-card');
+      const topicText = document.getElementById('topic-text');
+      const refreshButton = document.getElementById('refresh-button');
+      const progressIndicator = document.getElementById('progressIndicator');
+      const completionModal = document.getElementById('completionModal');
+
+      // 初始化游戏
+      async function initGame() {
+        try {
+          await loadGameData();
+          setupEventListeners();
+          setupCategorySelectors();
+          await switchCategory(currentCategory);
+          
+          // 隐藏加载状态，显示游戏
+          loadingState.style.display = 'none';
+          gameContainer.style.display = 'block';
+        } catch (error) {
+          console.error('Failed to initialize game:', error);
+          showError();
+        }
+      }
+
+      // 加载游戏数据
+      async function loadGameData() {
+        try {
+          // 根据category_tag获取游戏信息
+          gameData = await getGameByCategoryTag('drinking-topics');
+          
+          if (!gameData) {
+            throw new Error('Game not found');
+          }
+
+          // 为每个类别加载卡片ID
+          const categories = ['mildmode', 'ontheedge', 'intense', 'surprise'];
+          const promises = categories.map(async (categoryId) => {
+            const cardIds = await getGameCardIds(gameData.id, categoryId);
+            return { categoryId, cardIds };
+          });
+
+          const results = await Promise.all(promises);
+          
+          // 初始化类别数据
+          results.forEach(({ categoryId, cardIds }) => {
+            categoryData[categoryId] = cardIds;
+            currentCardIndex[categoryId] = 0;
+            usedCards[categoryId] = new Set();
+          });
+
+        } catch (error) {
+          console.error('Error loading game data:', error);
+          throw error;
+        }
+      }
+
+      // 显示错误状态
+      function showError() {
+        loadingState.style.display = 'none';
+        errorState.style.display = 'block';
+        gameContainer.style.display = 'none';
+      }
+
+      // 设置事件监听器
+      function setupEventListeners() {
+        // 刷新按钮点击事件
+        refreshButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          nextTopic();
+        });
+
+        // 卡片点击事件
+        topicCard.addEventListener('click', (e) => {
+          if (e.target === refreshButton || refreshButton.contains(e.target)) {
+            return;
+          }
+          nextTopic();
+        });
+
+        // 触摸滑动事件
+        let startX = 0;
+        let startY = 0;
+        let isScrolling = false;
+
+        topicCard.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          isScrolling = false;
+        });
+
+        topicCard.addEventListener('touchmove', (e) => {
+          if (!startX || !startY) return;
+
+          const currentX = e.touches[0].clientX;
+          const currentY = e.touches[0].clientY;
+          const diffX = Math.abs(currentX - startX);
+          const diffY = Math.abs(currentY - startY);
+
+          if (diffY > diffX) {
+            isScrolling = true;
+          }
+        });
+
+        topicCard.addEventListener('touchend', (e) => {
+          if (!startX || !startY || isScrolling) return;
+
+          const endX = e.changedTouches[0].clientX;
+          const diffX = startX - endX;
+          const threshold = 50;
+
+          if (Math.abs(diffX) > threshold) {
+            if (diffX > 0) {
+              // 向左滑动 - 下一个类别
+              switchToNextCategory();
+            } else {
+              // 向右滑动 - 上一个类别
+              switchToPrevCategory();
+            }
+          }
+
+          startX = 0;
+          startY = 0;
+          isScrolling = false;
+        });
+      }
+
+      // 设置类别选择器
+      function setupCategorySelectors() {
+        const selectors = document.querySelectorAll('.category-selector');
+        selectors.forEach(selector => {
+          selector.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const categoryId = selector.getAttribute('data-category-id');
+            switchCategory(categoryId);
+          });
+        });
+      }
+
+      // 切换类别
+      async function switchCategory(categoryId) {
+        if (categoryId === currentCategory) return;
+
+        currentCategory = categoryId;
+        updateCategorySelectors();
+        updateCardStyle();
+        await loadCurrentTopic();
+        updateProgress();
+      }
+
+      // 更新类别选择器样式
+      function updateCategorySelectors() {
+        const selectors = document.querySelectorAll('.category-selector');
+        const categories = ['mildmode', 'ontheedge', 'intense', 'surprise'];
+        const currentIndex = categories.indexOf(currentCategory);
+
+        selectors.forEach((selector, index) => {
+          const distance = Math.abs(index - currentIndex);
+          const scale = distance === 0 ? 1 : 0.85 - (distance * 0.1);
+          const opacity = distance === 0 ? 1 : 0.6 - (distance * 0.2);
+          const zIndex = distance === 0 ? 10 : 5 - distance;
+
+          selector.style.transform = `scale(${scale})`;
+          selector.style.opacity = opacity;
+          selector.style.zIndex = zIndex;
+        });
+      }
+
+      // 更新卡片样式
+      function updateCardStyle() {
+        const config = categoryConfig[currentCategory];
+        if (config) {
+          topicCard.style.backgroundColor = config.colors.bg;
+          topicText.style.color = config.colors.text;
+        }
+      }
+
+      // 加载当前话题
+      async function loadCurrentTopic() {
+        const cardIds = categoryData[currentCategory];
+        if (!cardIds || cardIds.length === 0) {
+          topicText.textContent = '暂无话题';
+          return;
+        }
+
+        // 检查是否所有卡片都已使用
+        if (usedCards[currentCategory].size >= cardIds.length) {
+          showCompletionModal();
+          return;
+        }
+
+        // 获取下一个未使用的卡片
+        let cardId;
+        let attempts = 0;
+        do {
+          const randomIndex = Math.floor(Math.random() * cardIds.length);
+          cardId = cardIds[randomIndex];
+          attempts++;
+        } while (usedCards[currentCategory].has(cardId) && attempts < 100);
+
+        if (usedCards[currentCategory].has(cardId)) {
+          // 如果随机选择失败，找第一个未使用的
+          cardId = cardIds.find(id => !usedCards[currentCategory].has(id));
+        }
+
+        if (cardId) {
+          try {
+            const card = await getCardById(cardId);
+            if (card) {
+              // 添加淡出效果
+              topicText.classList.add('topic-fade-out');
+              
+              setTimeout(() => {
+                topicText.textContent = card.content;
+                topicText.classList.remove('topic-fade-out');
+                topicText.classList.add('topic-fade-in');
+                
+                setTimeout(() => {
+                  topicText.classList.remove('topic-fade-in');
+                }, 300);
+              }, 150);
+
+              usedCards[currentCategory].add(cardId);
+              updateProgress();
+            }
+          } catch (error) {
+            console.error('Error loading card:', error);
+            topicText.textContent = '加载失败，请重试';
+          }
+        }
+      }
+
+      // 下一个话题
+      async function nextTopic() {
+        await loadCurrentTopic();
+      }
+
+      // 切换到下一个类别
+      function switchToNextCategory() {
+        const categories = ['mildmode', 'ontheedge', 'intense', 'surprise'];
+        const currentIndex = categories.indexOf(currentCategory);
+        const nextIndex = (currentIndex + 1) % categories.length;
+        switchCategory(categories[nextIndex]);
+      }
+
+      // 切换到上一个类别
+      function switchToPrevCategory() {
+        const categories = ['mildmode', 'ontheedge', 'intense', 'surprise'];
+        const currentIndex = categories.indexOf(currentCategory);
+        const prevIndex = (currentIndex - 1 + categories.length) % categories.length;
+        switchCategory(categories[prevIndex]);
+      }
+
+      // 更新进度指示器
+      function updateProgress() {
+        const cardIds = categoryData[currentCategory];
+        const totalCards = cardIds ? cardIds.length : 0;
+        const usedCount = usedCards[currentCategory] ? usedCards[currentCategory].size : 0;
+        progressIndicator.textContent = `${usedCount}/${totalCards}`;
+      }
+
+      // 显示完成模态框
+      function showCompletionModal() {
+        const config = categoryConfig[currentCategory];
+        const totalCards = categoryData[currentCategory] ? categoryData[currentCategory].length : 0;
+        
+        document.getElementById('completedCount').textContent = totalCards;
+        document.getElementById('currentCategoryName').textContent = config.name;
+        
+        completionModal.classList.add('active');
+      }
+
+      // 关闭完成模态框
+      window.closeCompletionModal = function() {
+        completionModal.classList.remove('active');
+      }
+
+      // 重新开始当前类别
+      window.restartCategory = function() {
+        usedCards[currentCategory].clear();
+        currentCardIndex[currentCategory] = 0;
+        completionModal.classList.remove('active');
+        loadCurrentTopic();
+        updateProgress();
+      }
+
+      // 返回游戏库
+      window.goBack = function() {
+        window.location.href = '/';
+      }
+
+      // 启动游戏
+      initGame();
+    </script>
   </head>
   <body class="bg-[#151515] text-white">
     <!-- Loading State -->

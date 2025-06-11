@@ -40,13 +40,36 @@ export async function getGames() {
   }
 }
 
-// 获取指定游戏的所有卡片ID
-export async function getGameCardIds(gameId) {
+// 根据category_tag获取游戏
+export async function getGameByCategoryTag(categoryTag) {
+  try {
+    const { data, error } = await supabase
+      .from('games')
+      .select('*')
+      .eq('category_tag', categoryTag)
+      .eq('is_active', true)
+      .single()
+
+    if (error) {
+      console.error('Error fetching game by category tag:', error)
+      return null
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error in getGameByCategoryTag:', error)
+    return null
+  }
+}
+
+// 获取指定游戏和类别的所有卡片ID
+export async function getGameCardIds(gameId, cardCategory) {
   try {
     const { data, error } = await supabase
       .from('cards')
       .select('id')
       .eq('game_id', gameId)
+      .eq('category', cardCategory)
       .eq('is_active', true)
 
     if (error) {
