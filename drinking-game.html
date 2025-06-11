@@ -490,13 +490,14 @@
     </button>
 
     <script type="module">
-      import { getGameCardIds, getCardById } from './src/lib/supabase.ts'
+      import { getGameCardIds, getCardById, getGameByCategoryTag } from './src/lib/supabase.ts'
 
       // 游戏状态管理
       let cardIdsByCategory = {}; // 存储每个分类的卡片ID列表
       let availableCardIds = {}; // 存储每个分类可用的卡片ID
       let usedCardIds = {}; // 存储每个分类已使用的卡片ID
       let currentCategoryId = 'mildmode';
+      let gameData = null; // 存储游戏数据
 
       const topicCardElement = document.getElementById('topic-card');
       const topicTextElement = document.getElementById('topic-text');
@@ -547,16 +548,24 @@
         sel.style.left = initialTabPositions[id].left;
       });
 
-      // 优化后的数据加载 - 使用方案A（推荐）
+      // 优化后的数据加载 - 首先获取游戏数据，然后使用正确的游戏ID
       async function loadGameData() {
         try {
-          console.log('Loading game card IDs from database...');
+          console.log('Loading game data from database...');
           const startTime = performance.now();
           
-          // 并行加载所有分类的卡片ID列表
+          // 首先获取游戏数据
+          gameData = await getGameByCategoryTag('drinking-topics');
+          if (!gameData) {
+            throw new Error('Game not found with category_tag: drinking-topics');
+          }
+          
+          console.log('Game data loaded:', gameData);
+          
+          // 并行加载所有分类的卡片ID列表，使用正确的游戏ID
           const loadPromises = Object.keys(categoryNames).map(async (categoryId) => {
             console.log(`Loading card IDs for category: ${categoryId}`);
-            const cardIds = await getGameCardIds('drinking-topics', categoryId);
+            const cardIds = await getGameCardIds(gameData.id, categoryId);
             console.log(`Loaded ${cardIds.length} card IDs for ${categoryId}`);
             
             cardIdsByCategory[categoryId] = cardIds;
