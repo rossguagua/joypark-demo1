@@ -71,6 +71,52 @@
         cursor: pointer;
       }
 
+      /* 卡片堆栈动画 - 基础过渡效果 */
+      .stacked-card {
+        transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+      }
+
+      /* 卡片向左滑出 */
+      .slide-left {
+        animation: slideLeftOut 0.5s ease-in-out forwards;
+      }
+
+      /* 卡片向右滑出 */
+      .slide-right {
+        animation: slideRightOut 0.5s ease-in-out forwards;
+      }
+
+      /* 卡片从左侧滑入（用于"撤销"操作） */
+      .slide-in-from-left {
+        animation: slideInFromLeft 0.5s ease-in-out forwards;
+      }
+
+      /* 动画关键帧 */
+      @keyframes slideLeftOut {
+        to {
+          transform: translateX(-120%) scale(0.8);
+          opacity: 0;
+        }
+      }
+
+      @keyframes slideRightOut {
+        to {
+          transform: translateX(120%) scale(0.8);
+          opacity: 0;
+        }
+      }
+
+      @keyframes slideInFromLeft {
+        from {
+          transform: translateX(-120%) scale(0.8);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0px) scale(1);
+          opacity: 1;
+        }
+      }
+
       #topic-card {
         position: relative;
         padding-top: 80px;
@@ -332,7 +378,8 @@
         <div id="category-selectors-container">
           <div
             data-category-id="surprise"
-            class="category-selector w-[300px] h-[100px]"
+            class="category-selector stacked-card w-[300px] h-[100px]"
+            data-category="surprise"
             style="background-color: #ffc9dc"
           >
             <div
@@ -348,7 +395,8 @@
           </div>
           <div
             data-category-id="intense"
-            class="category-selector w-[300px] h-[100px]"
+            class="category-selector stacked-card w-[300px] h-[100px]"
+            data-category="intense"
             style="background-color: #b8b4ff"
           >
             <div
@@ -364,7 +412,8 @@
           </div>
           <div
             data-category-id="ontheedge"
-            class="category-selector w-[300px] h-[100px]"
+            class="category-selector stacked-card w-[300px] h-[100px]"
+            data-category="ontheedge"
             style="background-color: #a0e7e5"
           >
             <div
@@ -380,7 +429,8 @@
           </div>
           <div
             data-category-id="mildmode"
-            class="category-selector w-[300px] h-[100px]"
+            class="category-selector stacked-card w-[300px] h-[100px]"
+            data-category="mildmode"
             style="background-color: #c8fd0b"
           >
             <div
@@ -405,7 +455,7 @@
         </div>
 
         <div class="swipe-hint">
-          👈滑动切换卡片获取新话题👉
+          👈右滑撤销 | 左滑前进👉 | 点击获取话题
         </div>
       </div>
     </div>
@@ -463,6 +513,10 @@
       let usedCardIds = {}; // 存储每个分类已使用的卡片ID
       let currentCategoryId = 'mildmode';
       let gameData = null; // 存储游戏数据
+      
+      // 卡片堆栈管理
+      let cardOrder = ['mildmode', 'ontheedge', 'intense', 'surprise']; // 卡片顺序
+      let isAnimating = false; // 动画状态锁
 
       const topicCardElement = document.getElementById('topic-card');
       const topicTextElement = document.getElementById('topic-text');
@@ -547,8 +601,9 @@
           document.getElementById('loadingState').style.display = 'none';
           document.getElementById('gameContainer').style.display = 'flex';
           
-          // 设置初始分类
-          setActiveCategory(currentCategoryId);
+          // 初始化卡片堆栈
+          renderCardStack();
+          updateTopCardText();
           
         } catch (error) {
           console.error('Error loading game data:', error);
@@ -561,6 +616,98 @@
         if (cardIdsByCategory[categoryId]) {
           availableCardIds[categoryId] = [...cardIdsByCategory[categoryId]];
           usedCardIds[categoryId] = [];
+        }
+      }
+
+      // 新的卡片堆栈渲染函数
+      function renderCardStack(order = cardOrder, fullReset = true) {
+        const targetOrder = order;
+        targetOrder.forEach((categoryId, index) => {
+          const cardElement = document.querySelector(`.stacked-card[data-category='${categoryId}']`);
+          
+          if (fullReset) {
+            cardElement.classList.remove('slide-left', 'slide-right', 'slide-in-from-left');
+          }
+          
+          if (index === 0) {
+            cardElement.style.transform = 'translateY(0px) scale(1)';
+            cardElement.style.zIndex = 10;
+            cardElement.style.opacity = '1';
+            cardElement.style.pointerEvents = 'auto';
+          } else {
+            const stackOffset = index * -15;
+            const stackScale = 1 - (index * 0.04);
+            cardElement.style.transform = `translateY(${stackOffset}px) scale(${stackScale})`;
+            cardElement.style.zIndex = 10 - index;
+            cardElement.style.opacity = '1';
+            cardElement.style.pointerEvents = 'none';
+          }
+        });
+      }
+
+      // 更新顶层卡片文本
+      function updateTopCardText() {
+        currentCategoryId = cardOrder[0];
+        updateTopicCardUnifiedStyle();
+        
+        // 显示分类切换消息
+        topicTextElement.classList.remove('topic-fade-in');
+        topicTextElement.classList.add('topic-fade-out');
+        
+        setTimeout(() => {
+          topicTextElement.textContent = '点击卡片开始';
+          topicTextElement.classList.remove('topic-fade-out');
+          topicTextElement.classList.add('topic-fade-in');
+        }, 300);
+      }
+
+      // 全新的 handleSwipe 函数，包含非对称逻辑
+      function handleSwipe(direction) {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const outgoingCard = document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`);
+
+        if (direction === 'right') {
+          // --- 逻辑1：向右滑 → 下一张 ---
+
+          // 1. 让顶层卡片向右滑出
+          outgoingCard.classList.add('slide-right');
+
+          // 2. 立即开始下方卡片的移动
+          setTimeout(() => {
+            const newOrder = [...cardOrder];
+            newOrder.push(newOrder.shift());
+            renderCardStack(newOrder, false); // 预渲染，但不改变状态
+          }, 50);
+
+          // 3. 动画结束后，更新状态并清理
+          outgoingCard.addEventListener('animationend', () => {
+            cardOrder.push(cardOrder.shift()); // 将第一张移动到末尾
+            renderCardStack();                 // 根据新顺序重置所有卡片样式
+            updateTopCardText();
+            isAnimating = false;
+          }, { once: true });
+
+        } else { // direction === 'left'
+          // --- 逻辑2：向左滑 ← 上一张 (撤销) ---
+          
+          const incomingCardCategory = cardOrder[cardOrder.length - 1];
+          const incomingCard = document.querySelector(`.stacked-card[data-category='${incomingCardCategory}']`);
+
+          // 1. 让当前顶层卡片向右滑走，为从左边来的新卡片腾出位置
+          outgoingCard.classList.add('slide-right');
+          
+          // 2. 让牌组的最后一张牌从左侧滑入
+          incomingCard.classList.add('slide-in-from-left');
+
+          // 3. 在"入场"动画结束后，更新状态并清理
+          incomingCard.addEventListener('animationend', () => {
+            cardOrder.unshift(cardOrder.pop()); // 将最后一张移动到开头
+            renderCardStack();                  // 根据新顺序重置所有卡片样式
+            updateTopCardText();
+            isAnimating = false;
+          }, { once: true });
         }
       }
 
@@ -673,50 +820,19 @@
         );
       }
 
+      // 简化的分类设置函数（现在主要用于点击分类标签）
       function setActiveCategory(newCategoryId) {
-        currentCategoryId = newCategoryId;
-        updateTopicCardUnifiedStyle();
+        // 找到目标分类在cardOrder中的位置
+        const targetIndex = cardOrder.indexOf(newCategoryId);
+        if (targetIndex === -1) return;
         
-        // 显示新分类的初始消息
-        topicTextElement.classList.remove('topic-fade-in');
-        topicTextElement.classList.add('topic-fade-out');
+        // 重新排列cardOrder，将目标分类移到顶部
+        const newOrder = cardOrder.slice(targetIndex).concat(cardOrder.slice(0, targetIndex));
+        cardOrder = newOrder;
         
-        setTimeout(() => {
-          topicTextElement.textContent = '点击卡片开始';
-          topicTextElement.classList.remove('topic-fade-out');
-          topicTextElement.classList.add('topic-fade-in');
-        }, 300);
-
-        const activeSelector = categorySelectors.find(
-          (s) => s.dataset.categoryId === newCategoryId
-        );
-
-        const inactiveSelectorsOrdered = categoryVisualOrder
-          .filter((id) => id !== newCategoryId)
-          .map((id) => categorySelectors.find((s) => s.dataset.categoryId === id));
-
-        // 激活卡片的样式
-        if (activeSelector) {
-          activeSelector.style.transform = 'translateY(0px) scale(1)';
-          activeSelector.style.zIndex = 50;
-          activeSelector.style.opacity = 1;
-        }
-
-        // 非激活卡片的堆叠样式
-        inactiveSelectorsOrdered.forEach((selector, index) => {
-          if (selector) {
-            const depth = index + 1;
-            const translateYFactor = -20; // 堆叠间距
-            const scaleFactor = 0.05; // 每层收缩
-            const opacityFactor = 0.15; // 每层透明度降低
-
-            selector.style.transform = `translateY(${
-              depth * translateYFactor
-            }px) scale(${1 - depth * scaleFactor})`;
-            selector.style.zIndex = 40 - depth * 10;
-            selector.style.opacity = Math.max(0.3, 1 - depth * opacityFactor);
-          }
-        });
+        // 重新渲染卡片堆栈
+        renderCardStack();
+        updateTopCardText();
       }
 
       window.goBack = function() {
@@ -730,7 +846,7 @@
         displayNewTopic();
       });
 
-      // 滑动功能
+      // 滑动功能 - 重构为卡片堆栈逻辑
       let startX = 0;
       let startY = 0;
       let isDragging = false;
@@ -757,14 +873,12 @@
 
         // 只有当水平滑动距离大于垂直滑动距离且达到最小阈值时才响应
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-          const currentIndex = categoryVisualOrder.indexOf(currentCategoryId);
-          
-          if (deltaX > 0 && currentIndex > 0) {
-            // 右滑：向前一个类型
-            setActiveCategory(categoryVisualOrder[currentIndex - 1]);
-          } else if (deltaX < 0 && currentIndex < categoryVisualOrder.length - 1) {
-            // 左滑：向后一个类型
-            setActiveCategory(categoryVisualOrder[currentIndex + 1]);
+          if (deltaX > 0) {
+            // 右滑：撤销到上一张（末尾卡片移到顶部）
+            handleSwipe('left');
+          } else {
+            // 左滑：前进到下一张（顶层卡片移到末尾）
+            handleSwipe('right');
           }
         } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
           // 如果是轻点而非滑动，显示新话题
@@ -792,12 +906,12 @@
         const deltaY = e.clientY - startY;
 
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-          const currentIndex = categoryVisualOrder.indexOf(currentCategoryId);
-          
-          if (deltaX > 0 && currentIndex > 0) {
-            setActiveCategory(categoryVisualOrder[currentIndex - 1]);
-          } else if (deltaX < 0 && currentIndex < categoryVisualOrder.length - 1) {
-            setActiveCategory(categoryVisualOrder[currentIndex + 1]);
+          if (deltaX > 0) {
+            // 右滑：撤销到上一张
+            handleSwipe('left');
+          } else {
+            // 左滑：前进到下一张
+            handleSwipe('right');
           }
         } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
           displayNewTopic();
