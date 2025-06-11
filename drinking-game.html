@@ -118,7 +118,7 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* 滑动提示样式 - 改为黑色更醒目 */
+      /* 滑动提示样式 - 改为黑色更醒目，增加宽度 */
       .swipe-hint {
         position: absolute;
         bottom: 20px;
@@ -131,6 +131,9 @@
         animation: pulse-hint 3s infinite;
         pointer-events: none;
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        white-space: nowrap;
+        width: 280px;
+        margin-left: -140px;
       }
 
       @keyframes pulse-hint {
