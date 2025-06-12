@@ -502,7 +502,7 @@
         
         (async function initializeSupabase() {
             try {
-                const supabaseModule = await import('./src/lib/supabase.ts');
+                const supabaseModule = await import('./src/lib/supabase.js');
                 getGames = supabaseModule.getGames;
                 console.log('✅ Supabase模块加载成功');
                 
@@ -520,6 +520,9 @@
                     </div>
                 `;
                 document.getElementById('loadingState').style.display = 'block';
+                
+                // 确保使用 fallback 数据也能正常渲染页面
+                renderGames();
             }
         })();
 
@@ -535,7 +538,7 @@
             
             // 具体的category_tag到文件名的映射
             const coverMapping = {
-                'ice-breaker-box': 'battle-royale.png',
+                'battle-royale': 'battle-royale.png',
                 'party-psychology': 'party-psychology.png',
                 'poker': 'poker.png',
                 'love-battle': 'love-battle.png',
@@ -597,6 +600,9 @@
                     </div>
                 `;
                 document.getElementById('loadingState').style.display = 'block';
+                
+                // 确保即使数据库连接失败也能显示fallback数据
+                renderGames();
             }
         }
 
@@ -789,9 +795,9 @@
             });
         });
 
-        // 立即显示游戏库
+        // 应用初始化
         console.log('🚀 正在初始化应用...');
-        renderGames();
+        // renderGames() 将在 Supabase 初始化完成后调用
     </script>
 </body>
 </html>

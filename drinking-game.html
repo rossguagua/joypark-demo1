@@ -452,7 +452,7 @@
       // 异步初始化模块和游戏数据
       (async function initializeGame() {
         try {
-          const supabaseModule = await import('./src/lib/supabase.ts');
+                          const supabaseModule = await import('./src/lib/supabase.js');
           getGameCardIds = supabaseModule.getGameCardIds;
           getCardById = supabaseModule.getCardById;
           getGameByCategoryTag = supabaseModule.getGameByCategoryTag;
