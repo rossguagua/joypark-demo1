@@ -72,6 +72,7 @@
         width: 300px;
         height: 450px;
         perspective: 1000px;
+        margin-top: 125px;
         /* 让flex布局自然处理居中，无需手动偏移 */
       }
 
@@ -79,86 +80,93 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border-radius: 16px;
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: all 0.3s ease;
         overflow: hidden;
         backface-visibility: hidden;
       }
 
-      /* 卡片背景颜色 */
+      /* 简洁的卡片悬停效果 */
+      .stacked-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 保持堆叠卡片的悬停偏移 */
+      .card-intense:hover {
+        transform: translate(0, -25px);
+      }
+      
+      .card-ontheedge:hover {
+        transform: translate(0, -45px);
+      }
+      
+      .card-mildmode:hover {
+        transform: translate(0, -65px);
+      }
+
+      /* 卡片背景颜色 - 按照用户图片的纯色设计 */
       .card-surprise {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #C8FF00;
         z-index: 4;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-intense {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        background: #FF6B9D;
         z-index: 3;
-        transform: translate(4px, 4px) scale(0.98);
+        transform: translate(0, -20px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-ontheedge {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        background: #B8B5FF;
         z-index: 2;
-        transform: translate(8px, 8px) scale(0.96);
+        transform: translate(0, -40px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-mildmode {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        background: #A8C3BC;
         z-index: 1;
-        transform: translate(12px, 12px) scale(0.94);
+        transform: translate(0, -60px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
 
-      /* 卡片头部样式 */
+      /* 卡片头部样式 - 移除，标签直接定位在卡片上 */
       .card-header {
-        padding: 20px;
-        display: flex;
-        justify-content: center;
+        padding: 0;
+        display: block;
         position: relative;
+        height: 0;
       }
 
-      /* 美化标签样式 - 书签式设计 */
+      /* 简洁标签样式 - 完全按照用户图片设计 */
       .category-label {
-        position: relative;
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.9);
         color: #333;
         padding: 8px 16px;
         font-size: 13px;
-        font-weight: 700;
-        border-radius: 12px 12px 0 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transform: perspective(200px) rotateX(-10deg);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-      }
-
-      /* 书签式标签的下方"切口" */
-      .category-label:after {
-        content: '';
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.2s ease;
+        text-align: center;
         position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-top: 8px solid rgba(255, 255, 255, 0.95);
-        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+        top: 16px;
+        right: 16px;
+        margin: 0;
       }
 
       /* 悬停效果 */
       .stacked-card:hover .category-label {
-        transform: perspective(200px) rotateX(0deg);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         background: rgba(255, 255, 255, 1);
+        transform: scale(1.05);
       }
 
       /* 卡片主体 */
       .card-body {
-        padding: 40px 20px;
+        padding: 60px 20px 20px 20px;
         text-align: center;
-        height: calc(100% - 100px);
+        height: calc(100% - 80px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -466,7 +474,7 @@
             <div class="category-label">盲盒 Surprise Me</div>
           </div>
           <div class="card-body">
-            <div class="topic-text">点击卡片开始</div>
+            <div class="topic-text">如果你的生活是一部电影，你觉得现在是什么类型？</div>
           </div>
         </div>
 
@@ -555,6 +563,7 @@
       let gameData = null; // 存储游戏数据
       let gameStarted = false; // 跟踪游戏是否已开始
       let currentCardIndex = {}; // 每个分类当前的卡片索引
+      let isLoadingTopic = false; // 防止重复加载话题
       
       // 卡片堆栈管理
       let cardOrder = ['mildmode', 'ontheedge', 'intense', 'surprise']; // 卡片顺序
@@ -628,10 +637,11 @@
                   cardElement.style.opacity = '1';
                   cardElement.style.pointerEvents = 'auto';
               } else {
-                  // 下方的堆叠卡片 - 每张卡片都向前推进一个位置
-                  const stackOffset = index * -15;
-                  const stackScale = 1 - (index * 0.05);
-                  cardElement.style.transform = `translateY(${stackOffset}px) scale(${stackScale})`;
+                  // 下方的堆叠卡片 - 扇形展开让标签可见
+                  const stackOffsetX = index * 8;
+                  const stackOffsetY = index * -25;
+                  const stackScale = 1 - (index * 0.03);
+                  cardElement.style.transform = `translate(${stackOffsetX}px, ${stackOffsetY}px) scale(${stackScale})`;
                   cardElement.style.zIndex = 10 - index;
                   cardElement.style.opacity = '1';
                   cardElement.style.pointerEvents = 'none';
@@ -724,6 +734,10 @@
       }
 
       async function displayNewTopic() {
+        // 防止重复调用
+        if (isLoadingTopic) return;
+        isLoadingTopic = true;
+        
         // 标记游戏已开始
         gameStarted = true;
         
@@ -733,11 +747,15 @@
             const topicTextEl = topCard.querySelector('.topic-text');
             topicTextEl.textContent = '话题数据未加载或类型不存在。';
           }
+          isLoadingTopic = false;
           return;
         }
 
         const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
-        if (!topCard) return;
+        if (!topCard) {
+          isLoadingTopic = false;
+          return;
+        }
         
         const topicTextEl = topCard.querySelector('.topic-text');
         
@@ -752,17 +770,28 @@
             if (card === null) {
               // 所有卡片都已使用，显示完成模态框
               showCompletionModal();
+              isLoadingTopic = false;
               return;
             }
 
             topicTextEl.textContent = card.content;
             topicTextEl.classList.remove('topic-fade-out');
             topicTextEl.classList.add('topic-fade-in');
+            
+            // 等待动画完成后释放锁
+            setTimeout(() => {
+              isLoadingTopic = false;
+            }, 600);
+            
           } catch (error) {
             console.error('Error displaying new topic:', error);
             topicTextEl.textContent = '加载话题失败，请重试';
             topicTextEl.classList.remove('topic-fade-out');
             topicTextEl.classList.add('topic-fade-in');
+            
+            setTimeout(() => {
+              isLoadingTopic = false;
+            }, 600);
           }
         }, 300);
       }
