@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase 配置 - 请在这里填入你的项目信息
-const supabaseUrl = (import.meta as any)?.env?.VITE_SUPABASE_URL || 'https://frqjqmwuznhjqukdmexg.supabase.co'
-const supabaseAnonKey = (import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U'
+const supabaseUrl = (import.meta as any)?.env?.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL'
+const supabaseAnonKey = (import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
 
 // 验证基本配置存在
 if (!supabaseUrl || !supabaseAnonKey) {
