@@ -656,11 +656,15 @@
                 return `
                     <div class="game-card ${isComingSoon ? 'coming-soon' : ''}" onclick="showGamePreview('${game.category_tag}')">
                         <div class="game-card-content" 
-                             style="background-image: url('${imagePath}');">
-                            <!-- 添加图片加载错误处理 -->
+                             style="background-image: url('${imagePath}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                            <!-- 隐藏的img标签用于检测加载失败 -->
                             <img src="${imagePath}" 
                                  style="display: none;" 
-                                 onerror="this.parentElement.style.backgroundImage='none'; this.parentElement.classList.add('main-game-fallback'); this.parentElement.innerHTML='<div style=\\'padding: 16px; text-align: center;\\'><div style=\\'font-size: 16px; font-weight: bold; margin-bottom: 4px;\\'>${game.name || ''}</div><div style=\\'font-size: 12px; opacity: 0.8;\\'>${game.description || ''}</div></div>';">
+                                 onload="console.log('Image loaded:', '${imagePath}')"
+                                 onerror="console.error('Image failed to load:', '${imagePath}'); 
+                                         this.parentElement.style.backgroundImage='none'; 
+                                         this.parentElement.classList.add('main-game-fallback'); 
+                                         this.parentElement.innerHTML='<div style=\\'padding: 16px; text-align: center;\\'><div style=\\'font-size: 16px; font-weight: bold; margin-bottom: 4px;\\'>${game.name || ''}</div><div style=\\'font-size: 12px; opacity: 0.8;\\'>${game.description || ''}</div></div>';">
                         </div>
                     </div>
                 `;

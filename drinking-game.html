@@ -63,55 +63,160 @@
       }
 
       /* 指令：请用以下代码块，替换掉所有旧的、与卡片和滑动相关的CSS样式 */
-
-      /* 卡片堆叠的容器 */
+      
+      .container { height: 100vh; }
+      
+      /* 卡片堆栈样式 */
       .card-stack {
         position: relative;
-        /* 宽度和高度现在由其父容器或直接在元素上定义 */
+        width: 300px;
+        height: 450px;
+        margin: 0 auto;
+        perspective: 1000px;
       }
 
-      /* 独立的、可堆叠的卡片 */
       .stacked-card {
         position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
-        border-radius: 12px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         cursor: pointer;
-        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.35);
-        display: flex;
-        flex-direction: column;
+        transition: all 0.3s ease-in-out;
         overflow: hidden;
-        /* 这是让下方卡片平滑移动的核心 */
-        transition: transform 0.4s ease-in-out;
+        backface-visibility: hidden;
       }
 
-      /* 卡片头部和主体内容（这些样式基本不变） */
-      .card-header { height: 60px; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; }
-      .category-label { background: rgba(0, 0, 0, 0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
-      .card-body { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
-      .topic-text { font-size: 28px; font-weight: 900; text-align: center; line-height: 1.3; }
+      /* 卡片背景颜色 */
+      .card-surprise {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 4;
+      }
+      .card-intense {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        z-index: 3;
+        transform: translate(4px, 4px) scale(0.98);
+      }
+      .card-ontheedge {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        z-index: 2;
+        transform: translate(8px, 8px) scale(0.96);
+      }
+      .card-mildmode {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        z-index: 1;
+        transform: translate(12px, 12px) scale(0.94);
+      }
 
-      /* 卡片颜色主题 (不变) */
-      .card-surprise { background: linear-gradient(135deg, #ffc9dc, #ff9bb8); color: #2d1b69; }
-      .card-intense { background: linear-gradient(135deg, #b8b4ff, #9c97ff); color: #1a0d4d; }
-      .card-ontheedge { background: linear-gradient(135deg, #a0e7e5, #7dd3d8); color: #0d4a4f; }
-      .card-mildmode { background: linear-gradient(135deg, #c8fd0b, #a8e600); color: #2d4a0d; }
+      /* 卡片头部样式 */
+      .card-header {
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        position: relative;
+      }
 
-      /* 滑出动画（现在只应用于滑走的卡片） */
-      @keyframes slideLeftOut { to { transform: translateX(-120%) rotate(-15deg); opacity: 0; } }
-      @keyframes slideRightOut { to { transform: translateX(120%) rotate(15deg); opacity: 0; } }
+      /* 美化标签样式 - 书签式设计 */
+      .category-label {
+        position: relative;
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transform: perspective(200px) rotateX(-10deg);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
 
-      /* 滑入动画（仅用于左滑撤销） */
+      /* 书签式标签的下方"切口" */
+      .category-label:after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid rgba(255, 255, 255, 0.95);
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+      }
+
+      /* 悬停效果 */
+      .stacked-card:hover .category-label {
+        transform: perspective(200px) rotateX(0deg);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 1);
+      }
+
+      /* 卡片主体 */
+      .card-body {
+        padding: 40px 20px;
+        text-align: center;
+        height: calc(100% - 100px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .topic-text {
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.4;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-height: 280px;
+        overflow-y: auto;
+        padding: 0 10px;
+      }
+
+      /* 话题文本动画 */
+      .topic-fade-in {
+        animation: topicFadeIn 0.6s ease forwards;
+      }
+
+      .topic-fade-out {
+        animation: topicFadeOut 0.3s ease forwards;
+      }
+
+      @keyframes topicFadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes topicFadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-20px); }
+      }
+
+      /* 滑动动画 */
+      .slide-right {
+        animation: slideOutRight 0.4s ease-in forwards;
+      }
+
+      .slide-in-from-left {
+        animation: slideInFromLeft 0.4s ease-out forwards;
+      }
+
+      @keyframes slideOutRight {
+        from { transform: translateX(0) rotate(0deg); opacity: 1; }
+        to { transform: translateX(400px) rotate(15deg); opacity: 0; }
+      }
+
       @keyframes slideInFromLeft {
-        from { transform: translateX(-120%) rotate(-15deg); opacity: 0; }
-        to { transform: translateX(0) rotate(0); opacity: 1; }
+        from { transform: translateX(-400px) rotate(-15deg); opacity: 0; }
+        to { transform: translateX(0) rotate(0deg); opacity: 1; }
       }
 
-      .slide-left { animation: slideLeftOut 0.5s ease-in-out forwards; }
-      .slide-right { animation: slideRightOut 0.5s ease-in-out forwards; }
-      .slide-in-from-left { animation: slideInFromLeft 0.5s ease-in-out forwards; }
+      /* 移除下方提示文字的样式 */
+      /* .swipe-hint 样式已删除 */
 
       .back-button {
         position: fixed;
@@ -380,7 +485,6 @@
           </div>
         </div>
       </div>
-      <div class="swipe-hint">👈左滑撤销 | 右滑前进👉 | 点击获取话题</div>
     </div>
 
     <!-- Completion Modal -->
@@ -510,7 +614,7 @@
           });
       }
 
-      // 全新的、包含正确逻辑的 handleSwipe 函数
+      // 修改后的 handleSwipe 函数 - 所有方向滑动都触发前进功能
       function handleSwipe(direction) {
           if (isAnimating) return;
           isAnimating = true;
@@ -521,35 +625,17 @@
               return;
           }
 
-          // 动画结束后的统一清理和状态更新函数
-          const cleanup = (isUndo = false) => {
-              if (isUndo) {
-                  cardOrder.unshift(cardOrder.pop()); // 左滑撤销：最后一张到第一
-              } else {
-                  cardOrder.push(cardOrder.shift()); // 右滑前进：第一张到最后
-              }
+          // 动画结束后的统一清理和状态更新函数 - 现在只有前进功能
+          const cleanup = () => {
+              cardOrder.push(cardOrder.shift()); // 第一张到最后（前进）
               renderCardStack();
               updateTopCardText(); // 更新新顶层卡片的文本
               isAnimating = false;
           };
 
-          if (direction === 'right') {
-              // --- 右滑：前进 ---
-              outgoingCard.classList.add('slide-right');
-              outgoingCard.addEventListener('animationend', () => cleanup(false), { once: true });
-          } else {
-              // --- 左滑：撤销 ---
-              const incomingCardCategory = cardOrder[cardOrder.length - 1];
-              const incomingCard = document.querySelector(`.stacked-card[data-category='${incomingCardCategory}']`);
-
-              // 顶层卡片滑走（向右滑，给左边腾位置）
-              outgoingCard.classList.add('slide-right');
-              // 底层卡片从左边滑入
-              incomingCard.classList.add('slide-in-from-left');
-
-              // 监听入场卡片的动画结束事件
-              incomingCard.addEventListener('animationend', () => cleanup(true), { once: true });
-          }
+          // 无论什么方向滑动，都执行前进动画
+          outgoingCard.classList.add('slide-right');
+          outgoingCard.addEventListener('animationend', () => cleanup(), { once: true });
       }
 
       // 更新顶层卡片文本函数 (小幅修改，以适应新结构)
@@ -702,10 +788,13 @@
               const deltaX = e.clientX - startX;
               const deltaY = e.clientY - startY;
 
-              if (Math.abs(deltaX) < 50) { // 判断为点击
+              // 判断是否为有效的滑动距离（包括上下左右）
+              const isSwipe = Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50;
+
+              if (!isSwipe) { // 判断为点击
                   displayNewTopic();
-              } else if (Math.abs(deltaX) > Math.abs(deltaY)) { // 判断为水平滑动
-                  handleSwipe(deltaX > 0 ? 'right' : 'left');
+              } else { // 任何方向的滑动都触发前进功能
+                  handleSwipe('next');
               }
           });
 
@@ -724,12 +813,17 @@
               isDragging = false;
               
               const endX = e.changedTouches[0].clientX;
+              const endY = e.changedTouches[0].clientY;
               const deltaX = endX - startX;
+              const deltaY = endY - startY;
               
-              if (Math.abs(deltaX) < 50) {
+              // 判断是否为有效的滑动距离（包括上下左右）
+              const isSwipe = Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50;
+              
+              if (!isSwipe) {
                   displayNewTopic();
-              } else {
-                  handleSwipe(deltaX > 0 ? 'right' : 'left');
+              } else { // 任何方向的滑动都触发前进功能
+                  handleSwipe('next');
               }
           });
       });
