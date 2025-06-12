@@ -11,11 +11,11 @@
         background-color: #151515;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center; /* 改为 center 使其垂直居中 */
         min-height: 100vh;
-        padding-top: 100px;
-        padding-bottom: 80px;
-        overflow-x: hidden;
+        padding-top: 0; /* 移除顶部内边距 */
+        padding-bottom: 0; /* 移除底部内边距 */
+        overflow: hidden; /* 禁用滚动 */
       }
 
       .topic-fade-out {
@@ -196,23 +196,35 @@
         to { opacity: 0; transform: translateY(-20px); }
       }
 
-      /* 滑动动画 */
-      .slide-right {
+      /* 新的、更灵活的滑动动画 */
+      .slide-out-up {
+        animation: slideOutUp 0.4s ease-in forwards;
+      }
+      .slide-out-down {
+        animation: slideOutDown 0.4s ease-in forwards;
+      }
+      .slide-out-left {
+        animation: slideOutLeft 0.4s ease-in forwards;
+      }
+      .slide-out-right {
         animation: slideOutRight 0.4s ease-in forwards;
       }
 
-      .slide-in-from-left {
-        animation: slideInFromLeft 0.4s ease-out forwards;
+      @keyframes slideOutUp {
+        from { transform: translateY(0) rotate(0deg); opacity: 1; }
+        to { transform: translateY(-600px) rotate(-10deg); opacity: 0; }
       }
-
+      @keyframes slideOutDown {
+        from { transform: translateY(0) rotate(0deg); opacity: 1; }
+        to { transform: translateY(600px) rotate(10deg); opacity: 0; }
+      }
+      @keyframes slideOutLeft {
+        from { transform: translateX(0) rotate(0deg); opacity: 1; }
+        to { transform: translateX(-600px) rotate(-15deg); opacity: 0; }
+      }
       @keyframes slideOutRight {
         from { transform: translateX(0) rotate(0deg); opacity: 1; }
-        to { transform: translateX(400px) rotate(15deg); opacity: 0; }
-      }
-
-      @keyframes slideInFromLeft {
-        from { transform: translateX(-400px) rotate(-15deg); opacity: 0; }
-        to { transform: translateX(0) rotate(0deg); opacity: 1; }
+        to { transform: translateX(600px) rotate(15deg); opacity: 0; }
       }
 
       /* 移除下方提示文字的样式 */
@@ -587,34 +599,50 @@
 
       // --- 指令：请用以下代码块替换所有相关的JS函数和事件监听 ---
 
-      // 新的渲染函数：只负责根据数组顺序设置所有卡的"静止"状态
+      // 新的渲染函数：更平滑地处理堆栈推进
       function renderCardStack() {
+          // 立即隐藏最顶层的卡片，防止闪烁
+          const topCard = document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`);
+          if (topCard) {
+            topCard.style.opacity = '0'; // 先隐藏
+          }
+
+          // 将数组中的第一张卡移动到末尾
+          cardOrder.push(cardOrder.shift()); 
+
+          // 更新当前分类ID
+          currentCategoryId = cardOrder[0];
+
+          // 遍历更新所有卡片的样式
           cardOrder.forEach((categoryId, index) => {
               const cardElement = document.querySelector(`.stacked-card[data-category='${categoryId}']`);
               if (!cardElement) return;
 
-              // 清理可能残留的动画类
-              cardElement.classList.remove('slide-left', 'slide-right', 'slide-in-from-left');
-
+              // 清理所有动画类
+              cardElement.classList.remove('slide-out-up', 'slide-out-down', 'slide-out-left', 'slide-out-right');
+              
               if (index === 0) {
-                  // 设置顶层卡片样式
+                  // 新的顶层卡片
                   cardElement.style.transform = 'translateY(0px) scale(1)';
                   cardElement.style.zIndex = 10;
                   cardElement.style.opacity = '1';
-                  cardElement.style.pointerEvents = 'auto'; // 允许交互
+                  cardElement.style.pointerEvents = 'auto';
               } else {
-                  // 设置下方堆叠卡片的样式
+                  // 下方的堆叠卡片
                   const stackOffset = index * -15;
                   const stackScale = 1 - (index * 0.05);
                   cardElement.style.transform = `translateY(${stackOffset}px) scale(${stackScale})`;
                   cardElement.style.zIndex = 10 - index;
                   cardElement.style.opacity = '1';
-                  cardElement.style.pointerEvents = 'none'; // 禁止交互
+                  cardElement.style.pointerEvents = 'none';
               }
           });
+          
+          updateTopCardText(); // 更新新顶层卡片的文本
+          isAnimating = false;
       }
 
-      // 修改后的 handleSwipe 函数 - 所有方向滑动都触发前进功能
+      // 新的 handleSwipe 函数，支持方向
       function handleSwipe(direction) {
           if (isAnimating) return;
           isAnimating = true;
@@ -624,18 +652,12 @@
               isAnimating = false;
               return;
           }
+          
+          // 根据方向添加对应的动画类
+          outgoingCard.classList.add(`slide-out-${direction}`);
 
-          // 动画结束后的统一清理和状态更新函数 - 现在只有前进功能
-          const cleanup = () => {
-              cardOrder.push(cardOrder.shift()); // 第一张到最后（前进）
-              renderCardStack();
-              updateTopCardText(); // 更新新顶层卡片的文本
-              isAnimating = false;
-          };
-
-          // 无论什么方向滑动，都执行前进动画
-          outgoingCard.classList.add('slide-right');
-          outgoingCard.addEventListener('animationend', () => cleanup(), { once: true });
+          // 动画结束后重新渲染卡片堆栈
+          outgoingCard.addEventListener('animationend', renderCardStack, { once: true });
       }
 
       // 更新顶层卡片文本函数 (小幅修改，以适应新结构)
@@ -817,13 +839,18 @@
               const deltaX = endX - startX;
               const deltaY = endY - startY;
               
-              // 判断是否为有效的滑动距离（包括上下左右）
-              const isSwipe = Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50;
-              
-              if (!isSwipe) {
-                  displayNewTopic();
-              } else { // 任何方向的滑动都触发前进功能
-                  handleSwipe('next');
+              if (Math.abs(deltaX) < 50 && Math.abs(deltaY) < 50) {
+                  displayNewTopic(); // 这是点击
+                  return;
+              }
+
+              // 判断主要滑动方向
+              if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                  // 水平滑动
+                  handleSwipe(deltaX > 0 ? 'right' : 'left');
+              } else {
+                  // 垂直滑动
+                  handleSwipe(deltaY > 0 ? 'down' : 'up');
               }
           });
       });

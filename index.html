@@ -439,7 +439,7 @@
     <div class="main-container">
         <!-- Logo Section -->
         <div class="logo-section">
-            <img src="images/logo.png" alt="酒宝公园" class="logo-image">
+            <img src="/assets/logo-BmWtGS7o.png" alt="酒宝公园" class="logo-image">
         </div>
 
         <!-- Loading State -->
@@ -529,14 +529,13 @@
         // gamesData 已在上面定义
         let selectedGameId = null;
 
-        // 本地化游戏封面图片映射 - 根据category_tag拼接本地路径
+        // 本地化游戏封面图片映射 - 使用 Vite 能识别的相对路径
         function getGameCoverPath(categoryTag) {
-            // 为 drinking-topics 使用特殊处理，因为它没有对应的封面图片
             if (categoryTag === 'drinking-topics') {
-                return null; // 返回 null，让主游戏使用渐变背景
+                return null;
             }
             
-            // 具体的category_tag到文件名的映射
+            // 这个映射现在应该只包含文件名
             const coverMapping = {
                 'battle-royale': 'battle-royale.png',
                 'party-psychology': 'party-psychology.png',
@@ -548,9 +547,16 @@
                 'wisdom': 'wisdom.png'
             };
             
-            // 如果有具体映射，使用映射的文件名；否则尝试直接使用category_tag
-            const fileName = coverMapping[categoryTag] || `${categoryTag}.png`;
-            return `images/covers/${fileName}`;
+            const fileName = coverMapping[categoryTag];
+            if (!fileName) {
+                // 如果没有在映射中找到，返回 null 以使用备用样式
+                console.warn(`Cover image for ${categoryTag} not found in mapping.`);
+                return null;
+            }
+
+            // Vite 会处理这个相对路径，并将其替换为构建后的正确路径
+            // 确保你的图片资源都放在 /images/covers/ 目录下
+            return `/images/covers/${fileName}`;
         }
 
         // 优化后的游戏加载函数 - 只获取核心数据，不包含图片URL
