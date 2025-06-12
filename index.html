@@ -439,7 +439,7 @@
     <div class="main-container">
         <!-- Logo Section -->
         <div class="logo-section">
-            <img src="/assets/logo-BmWtGS7o.png" alt="酒宝公园" class="logo-image">
+            <img src="images/logo.png" alt="酒宝公园" class="logo-image">
         </div>
 
         <!-- Loading State -->
@@ -554,9 +554,8 @@
                 return null;
             }
 
-            // Vite 会处理这个相对路径，并将其替换为构建后的正确路径
-            // 确保你的图片资源都放在 /images/covers/ 目录下
-            return `/images/covers/${fileName}`;
+            // 使用相对路径，让 Vite 正确处理资源
+            return `images/covers/${fileName}`;
         }
 
         // 优化后的游戏加载函数 - 只获取核心数据，不包含图片URL

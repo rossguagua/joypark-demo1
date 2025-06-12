@@ -11,11 +11,11 @@
         background-color: #151515;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center; /* 改为 center 使其垂直居中 */
         min-height: 100vh;
-        padding-top: 100px;
-        padding-bottom: 80px;
-        overflow-x: hidden;
+        padding-top: 0; /* 移除顶部内边距 */
+        padding-bottom: 0; /* 移除底部内边距 */
+        overflow: hidden; /* 禁用滚动 */
       }
 
       .topic-fade-out {
@@ -73,6 +73,9 @@
         height: 450px;
         margin: 0 auto;
         perspective: 1000px;
+        /* 确保在移动设备上完全居中 */
+        left: 50%;
+        transform: translateX(-50%);
       }
 
       .stacked-card {
@@ -82,7 +85,7 @@
         border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         cursor: pointer;
-        transition: all 0.3s ease-in-out;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         overflow: hidden;
         backface-visibility: hidden;
       }
@@ -196,23 +199,35 @@
         to { opacity: 0; transform: translateY(-20px); }
       }
 
-      /* 滑动动画 */
-      .slide-right {
+      /* 新的、更灵活的滑动动画 */
+      .slide-out-up {
+        animation: slideOutUp 0.4s ease-in forwards;
+      }
+      .slide-out-down {
+        animation: slideOutDown 0.4s ease-in forwards;
+      }
+      .slide-out-left {
+        animation: slideOutLeft 0.4s ease-in forwards;
+      }
+      .slide-out-right {
         animation: slideOutRight 0.4s ease-in forwards;
       }
 
-      .slide-in-from-left {
-        animation: slideInFromLeft 0.4s ease-out forwards;
+      @keyframes slideOutUp {
+        from { transform: translateY(0) rotate(0deg); opacity: 1; }
+        to { transform: translateY(-600px) rotate(-10deg); opacity: 0; }
       }
-
+      @keyframes slideOutDown {
+        from { transform: translateY(0) rotate(0deg); opacity: 1; }
+        to { transform: translateY(600px) rotate(10deg); opacity: 0; }
+      }
+      @keyframes slideOutLeft {
+        from { transform: translateX(0) rotate(0deg); opacity: 1; }
+        to { transform: translateX(-600px) rotate(-15deg); opacity: 0; }
+      }
       @keyframes slideOutRight {
         from { transform: translateX(0) rotate(0deg); opacity: 1; }
-        to { transform: translateX(400px) rotate(15deg); opacity: 0; }
-      }
-
-      @keyframes slideInFromLeft {
-        from { transform: translateX(-400px) rotate(-15deg); opacity: 0; }
-        to { transform: translateX(0) rotate(0deg); opacity: 1; }
+        to { transform: translateX(600px) rotate(15deg); opacity: 0; }
       }
 
       /* 移除下方提示文字的样式 */
@@ -432,7 +447,7 @@
         margin: 20px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/game-B9arSFjR.js"></script>
+    <script type="module" crossorigin src="/assets/game-v9DWh7vo.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/preload-helper-CS1eXPs2.js">
   </head>
   <body class="bg-[#151515] text-white">

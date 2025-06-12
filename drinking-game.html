@@ -73,6 +73,9 @@
         height: 450px;
         margin: 0 auto;
         perspective: 1000px;
+        /* 确保在移动设备上完全居中 */
+        left: 50%;
+        transform: translateX(-50%);
       }
 
       .stacked-card {
@@ -82,7 +85,7 @@
         border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         cursor: pointer;
-        transition: all 0.3s ease-in-out;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         overflow: hidden;
         backface-visibility: hidden;
       }
@@ -599,14 +602,8 @@
 
       // --- 指令：请用以下代码块替换所有相关的JS函数和事件监听 ---
 
-      // 新的渲染函数：更平滑地处理堆栈推进
+      // 新的渲染函数：平滑地处理堆栈推进
       function renderCardStack() {
-          // 立即隐藏最顶层的卡片，防止闪烁
-          const topCard = document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`);
-          if (topCard) {
-            topCard.style.opacity = '0'; // 先隐藏
-          }
-
           // 将数组中的第一张卡移动到末尾
           cardOrder.push(cardOrder.shift()); 
 
@@ -622,13 +619,13 @@
               cardElement.classList.remove('slide-out-up', 'slide-out-down', 'slide-out-left', 'slide-out-right');
               
               if (index === 0) {
-                  // 新的顶层卡片
+                  // 新的顶层卡片 - 平滑过渡到顶层位置
                   cardElement.style.transform = 'translateY(0px) scale(1)';
                   cardElement.style.zIndex = 10;
                   cardElement.style.opacity = '1';
                   cardElement.style.pointerEvents = 'auto';
               } else {
-                  // 下方的堆叠卡片
+                  // 下方的堆叠卡片 - 平滑过渡到堆叠位置
                   const stackOffset = index * -15;
                   const stackScale = 1 - (index * 0.05);
                   cardElement.style.transform = `translateY(${stackOffset}px) scale(${stackScale})`;
