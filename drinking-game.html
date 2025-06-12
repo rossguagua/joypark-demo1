@@ -11,10 +11,10 @@
         background-color: #151515;
         display: flex;
         justify-content: center;
-        align-items: center; /* 改为 center 使其垂直居中 */
+        align-items: center; /* 垂直居中 */
         min-height: 100vh;
-        padding-top: 0; /* 移除顶部内边距 */
-        padding-bottom: 0; /* 移除底部内边距 */
+        padding: 0; /* 完全移除内边距 */
+        margin: 0; /* 移除外边距 */
         overflow: hidden; /* 禁用滚动 */
       }
 
@@ -71,11 +71,8 @@
         position: relative;
         width: 300px;
         height: 450px;
-        margin: 0 auto;
         perspective: 1000px;
-        /* 确保在移动设备上完全居中 */
-        left: 50%;
-        transform: translateX(-50%);
+        /* 让flex布局自然处理居中，无需手动偏移 */
       }
 
       .stacked-card {
@@ -556,6 +553,8 @@
       let usedCardIds = {}; // 存储每个分类已使用的卡片ID
       let currentCategoryId = 'mildmode';
       let gameData = null; // 存储游戏数据
+      let gameStarted = false; // 跟踪游戏是否已开始
+      let currentCardIndex = {}; // 每个分类当前的卡片索引
       
       // 卡片堆栈管理
       let cardOrder = ['mildmode', 'ontheedge', 'intense', 'surprise']; // 卡片顺序
@@ -597,35 +596,39 @@
         if (cardIdsByCategory[categoryId]) {
           availableCardIds[categoryId] = [...cardIdsByCategory[categoryId]];
           usedCardIds[categoryId] = [];
+          currentCardIndex[categoryId] = 0; // 重置索引为0
         }
       }
 
       // --- 指令：请用以下代码块替换所有相关的JS函数和事件监听 ---
 
-      // 新的渲染函数：平滑地处理堆栈推进
+      // 重新设计的渲染函数：真正平滑的堆栈推进
       function renderCardStack() {
+          // 先移除已划走的卡片引用
+          const oldTopCard = document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`);
+          
           // 将数组中的第一张卡移动到末尾
           cardOrder.push(cardOrder.shift()); 
 
           // 更新当前分类ID
           currentCategoryId = cardOrder[0];
 
-          // 遍历更新所有卡片的样式
+          // 平滑地将所有剩余卡片向前推进一个位置
           cardOrder.forEach((categoryId, index) => {
               const cardElement = document.querySelector(`.stacked-card[data-category='${categoryId}']`);
               if (!cardElement) return;
 
-              // 清理所有动画类
+              // 清理所有滑出动画类
               cardElement.classList.remove('slide-out-up', 'slide-out-down', 'slide-out-left', 'slide-out-right');
               
               if (index === 0) {
-                  // 新的顶层卡片 - 平滑过渡到顶层位置
+                  // 新的顶层卡片 - 平滑升到顶层
                   cardElement.style.transform = 'translateY(0px) scale(1)';
                   cardElement.style.zIndex = 10;
                   cardElement.style.opacity = '1';
                   cardElement.style.pointerEvents = 'auto';
               } else {
-                  // 下方的堆叠卡片 - 平滑过渡到堆叠位置
+                  // 下方的堆叠卡片 - 每张卡片都向前推进一个位置
                   const stackOffset = index * -15;
                   const stackScale = 1 - (index * 0.05);
                   cardElement.style.transform = `translateY(${stackOffset}px) scale(${stackScale})`;
@@ -634,8 +637,19 @@
                   cardElement.style.pointerEvents = 'none';
               }
           });
+
+          // 确保已划走的卡片完全从显示中移除
+          if (oldTopCard) {
+              oldTopCard.style.display = 'none';
+              // 重新显示（为下次循环做准备）
+              setTimeout(() => {
+                  if (oldTopCard.style.display === 'none') {
+                      oldTopCard.style.display = 'block';
+                      oldTopCard.style.opacity = '1';
+                  }
+              }, 100);
+          }
           
-          updateTopCardText(); // 更新新顶层卡片的文本
           isAnimating = false;
       }
 
@@ -657,36 +671,47 @@
           outgoingCard.addEventListener('animationend', renderCardStack, { once: true });
       }
 
-      // 更新顶层卡片文本函数 (小幅修改，以适应新结构)
+      // 更新顶层卡片文本函数 - 只在游戏开始时显示"点击开始"
       function updateTopCardText() {
           currentCategoryId = cardOrder[0];
           const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
           if (!topCard) return;
 
           const topicTextEl = topCard.querySelector('.topic-text');
-          topicTextEl.classList.remove('topic-fade-in');
-          topicTextEl.classList.add('topic-fade-out');
+          
+          // 只在游戏尚未开始时显示"点击卡片开始"
+          if (!gameStarted) {
+              topicTextEl.classList.remove('topic-fade-in');
+              topicTextEl.classList.add('topic-fade-out');
 
-          setTimeout(() => {
-              topicTextEl.textContent = '点击卡片开始';
-              topicTextEl.classList.remove('topic-fade-out');
-              topicTextEl.classList.add('topic-fade-in');
-          }, 300);
+              setTimeout(() => {
+                  topicTextEl.textContent = '点击卡片开始';
+                  topicTextEl.classList.remove('topic-fade-out');
+                  topicTextEl.classList.add('topic-fade-in');
+              }, 300);
+          }
+          // 游戏已开始时，不更改文本内容
       }
 
-      // 优化后的卡片获取 - 按需加载单张卡片
+      // 改进的卡片获取 - 按顺序获取卡片
       async function getNextCard(categoryId) {
-        if (!availableCardIds[categoryId] || availableCardIds[categoryId].length === 0) {
-          return null; // 没有更多卡片
+        if (!cardIdsByCategory[categoryId] || cardIdsByCategory[categoryId].length === 0) {
+          return null; // 没有卡片数据
         }
 
-        // 从可用卡片中随机选择一个ID
-        const randomIndex = Math.floor(Math.random() * availableCardIds[categoryId].length);
-        const selectedCardId = availableCardIds[categoryId][randomIndex];
-        
-        // 从可用列表中移除，添加到已使用列表
-        availableCardIds[categoryId].splice(randomIndex, 1);
-        usedCardIds[categoryId].push(selectedCardId);
+        // 确保索引已初始化
+        if (currentCardIndex[categoryId] === undefined) {
+          currentCardIndex[categoryId] = 0;
+        }
+
+        // 检查是否还有未使用的卡片
+        if (currentCardIndex[categoryId] >= cardIdsByCategory[categoryId].length) {
+          return null; // 所有卡片都已使用完
+        }
+
+        // 按顺序获取下一张卡片
+        const selectedCardId = cardIdsByCategory[categoryId][currentCardIndex[categoryId]];
+        currentCardIndex[categoryId]++; // 增加索引
         
         try {
           // 按需获取单张卡片内容
@@ -699,6 +724,9 @@
       }
 
       async function displayNewTopic() {
+        // 标记游戏已开始
+        gameStarted = true;
+        
         if (!cardIdsByCategory[currentCategoryId]) {
           const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
           if (topCard) {
@@ -761,15 +789,22 @@
         resetCategoryCards(currentCategoryId);
         closeCompletionModal();
         
-        // 显示重新开始消息
-        topicTextElement.classList.remove('topic-fade-in');
-        topicTextElement.classList.add('topic-fade-out');
+        // 重置游戏状态
+        gameStarted = false;
         
-        setTimeout(() => {
-          topicTextElement.textContent = '点击卡片开始新一轮';
-          topicTextElement.classList.remove('topic-fade-out');
-          topicTextElement.classList.add('topic-fade-in');
-        }, 300);
+        // 显示重新开始消息
+        const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
+        if (topCard) {
+          const topicTextEl = topCard.querySelector('.topic-text');
+          topicTextEl.classList.remove('topic-fade-in');
+          topicTextEl.classList.add('topic-fade-out');
+          
+          setTimeout(() => {
+            topicTextEl.textContent = '点击卡片开始新一轮';
+            topicTextEl.classList.remove('topic-fade-out');
+            topicTextEl.classList.add('topic-fade-in');
+          }, 300);
+        }
       }
 
       // 移除已不需要的函数，因为现在每个卡片都有自己的颜色
@@ -902,6 +937,7 @@
               cardIdsByCategory[categoryId] = cardIds;
               availableCardIds[categoryId] = [...cardIds]; // 创建副本
               usedCardIds[categoryId] = [];
+              currentCardIndex[categoryId] = 0; // 初始化索引
               
               return { categoryId, count: cardIds.length };
             } catch (error) {
@@ -910,6 +946,7 @@
               cardIdsByCategory[categoryId] = [];
               availableCardIds[categoryId] = [];
               usedCardIds[categoryId] = [];
+              currentCardIndex[categoryId] = 0; // 初始化索引
               return { categoryId, count: 0 };
             }
           });
