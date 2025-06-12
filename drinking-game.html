@@ -62,32 +62,56 @@
         height: 100%;
       }
 
-      .category-selector {
-        transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55),
-          opacity 0.4s ease-out;
-        transform-origin: center top;
-        position: absolute;
-        border-radius: 0.75rem;
-        cursor: pointer;
-      }
+      /* 指令：请用以下代码块，替换掉所有旧的、与卡片和滑动相关的CSS样式 */
 
-      #topic-card {
+      /* 卡片堆叠的容器 */
+      .card-stack {
         position: relative;
-        padding-top: 80px;
-        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.35),
-          0px 4px 12px rgba(0, 0, 0, 0.25);
+        /* 宽度和高度现在由其父容器或直接在元素上定义 */
       }
 
-      #category-selectors-container {
+      /* 独立的、可堆叠的卡片 */
+      .stacked-card {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 80px;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.35);
         display: flex;
-        justify-content: center;
-        align-items: flex-start;
+        flex-direction: column;
+        overflow: hidden;
+        /* 这是让下方卡片平滑移动的核心 */
+        transition: transform 0.4s ease-in-out;
       }
+
+      /* 卡片头部和主体内容（这些样式基本不变） */
+      .card-header { height: 60px; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; }
+      .category-label { background: rgba(0, 0, 0, 0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+      .card-body { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+      .topic-text { font-size: 28px; font-weight: 900; text-align: center; line-height: 1.3; }
+
+      /* 卡片颜色主题 (不变) */
+      .card-surprise { background: linear-gradient(135deg, #ffc9dc, #ff9bb8); color: #2d1b69; }
+      .card-intense { background: linear-gradient(135deg, #b8b4ff, #9c97ff); color: #1a0d4d; }
+      .card-ontheedge { background: linear-gradient(135deg, #a0e7e5, #7dd3d8); color: #0d4a4f; }
+      .card-mildmode { background: linear-gradient(135deg, #c8fd0b, #a8e600); color: #2d4a0d; }
+
+      /* 滑出动画（现在只应用于滑走的卡片） */
+      @keyframes slideLeftOut { to { transform: translateX(-120%) rotate(-15deg); opacity: 0; } }
+      @keyframes slideRightOut { to { transform: translateX(120%) rotate(15deg); opacity: 0; } }
+
+      /* 滑入动画（仅用于左滑撤销） */
+      @keyframes slideInFromLeft {
+        from { transform: translateX(-120%) rotate(-15deg); opacity: 0; }
+        to { transform: translateX(0) rotate(0); opacity: 1; }
+      }
+
+      .slide-left { animation: slideLeftOut 0.5s ease-in-out forwards; }
+      .slide-right { animation: slideRightOut 0.5s ease-in-out forwards; }
+      .slide-in-from-left { animation: slideInFromLeft 0.5s ease-in-out forwards; }
 
       .back-button {
         position: fixed;
@@ -118,21 +142,20 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* 添加滑动提示样式 */
       .swipe-hint {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 12px;
+        color: #888888;
+        font-size: 14px;
+        font-weight: 600;
         text-align: center;
         animation: pulse-hint 3s infinite;
         pointer-events: none;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        white-space: nowrap;
+        margin-top: 16px;
       }
 
       @keyframes pulse-hint {
-        0%, 100% { opacity: 0.6; }
+        0%, 100% { opacity: 0.8; }
         50% { opacity: 1; }
       }
 
@@ -280,20 +303,6 @@
         background: rgba(255, 255, 255, 0.2);
       }
 
-      /* Progress indicator */
-      .progress-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        z-index: 10;
-      }
-
       .loading-spinner {
         display: inline-block;
         width: 20px;
@@ -333,116 +342,45 @@
     </div>
 
     <!-- Game Container -->
-    <div id="gameContainer" class="container w-full max-w-[350px] p-4 flex flex-col items-center" style="display: none;">
-      <div
-        id="topic-card"
-        class="w-full h-[500px] rounded-xl flex flex-col items-center justify-between cursor-pointer transition-colors duration-300 ease-in-out"
-      >
-        <!-- Progress Indicator -->
-        <div id="progressIndicator" class="progress-indicator">
-          0/0
-        </div>
-
-        <div id="category-selectors-container">
-          <div
-            data-category-id="surprise"
-            class="category-selector w-[264px] h-[100px]"
-            style="background-color: #ffc9dc"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #f93c7e; color: #2df92a"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >盲盒 Surprise Me</span
-                >
-              </div>
-            </div>
+    <div id="gameContainer" class="container w-full max-w-[300px] p-4 flex flex-col items-center" style="display: none;">
+      <div class="card-stack w-[300px] h-[450px]">
+        <div class="stacked-card card-surprise" data-category="surprise">
+          <div class="card-header">
+            <div class="category-label">盲盒 Surprise Me</div>
           </div>
-          <div
-            data-category-id="intense"
-            class="category-selector w-[280px] h-[100px]"
-            style="background-color: #b8b4ff"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #342af6; color: #ff2470"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >加麻加辣 Intense</span
-                >
-              </div>
-            </div>
-          </div>
-          <div
-            data-category-id="ontheedge"
-            class="category-selector w-[296px] h-[100px]"
-            style="background-color: #a0e7e5"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #ffc9dc; color: #560ee6"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >微辣 On the Edge</span
-                >
-              </div>
-            </div>
-          </div>
-          <div
-            data-category-id="mildmode"
-            class="category-selector w-[316px] h-[100px]"
-            style="background-color: #c8fd0b"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #2df92a; color: black"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >清汤 Mild Mode</span
-                >
-              </div>
-            </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
           </div>
         </div>
 
-        <div
-          id="topic-text"
-          class="text-3xl md:text-4xl font-extrabold uppercase text-center leading-tight flex items-center justify-center h-full px-4 mt-[20px] mb-auto"
-          style="letter-spacing: 0.02em"
-        >
-          点击卡片开始
+        <div class="stacked-card card-intense" data-category="intense">
+          <div class="card-header">
+            <div class="category-label">加麻加辣 Intense</div>
+          </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
+          </div>
         </div>
 
-        <button
-          id="refresh-button"
-          aria-label="下一个话题"
-          class="bg-black rounded-full p-3 w-16 h-16 flex items-center justify-center text-white shadow-lg mb-6 z-50 hover:bg-gray-800 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-8 h-8"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
-          </svg>
-        </button>
+        <div class="stacked-card card-ontheedge" data-category="ontheedge">
+          <div class="card-header">
+            <div class="category-label">微辣 On the Edge</div>
+          </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
+          </div>
+        </div>
 
-        <div class="swipe-hint">
-          ← 滑动切换类型 | 点击获取新话题 →
+        <div class="stacked-card card-mildmode" data-category="mildmode">
+          <div class="card-header">
+            <div class="category-label">清汤 Mild Mode</div>
+          </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
+          </div>
         </div>
       </div>
+      <div class="swipe-hint">👈左滑撤销 | 右滑前进👉 | 点击获取话题</div>
     </div>
 
     <!-- Completion Modal -->
@@ -490,24 +428,19 @@
     </button>
 
     <script type="module">
-      import { getGameCardIds, getCardById } from './src/lib/supabase.ts'
-
+      // 安全的模块导入，避免使用top-level await
+      let getGameCardIds, getCardById, getGameByCategoryTag;
+      
       // 游戏状态管理
       let cardIdsByCategory = {}; // 存储每个分类的卡片ID列表
       let availableCardIds = {}; // 存储每个分类可用的卡片ID
       let usedCardIds = {}; // 存储每个分类已使用的卡片ID
       let currentCategoryId = 'mildmode';
-
-      const topicCardElement = document.getElementById('topic-card');
-      const topicTextElement = document.getElementById('topic-text');
-      const refreshButton = document.getElementById('refresh-button');
-      const progressIndicator = document.getElementById('progressIndicator');
-      const categorySelectors = Array.from(
-        document.querySelectorAll('.category-selector')
-      );
-
-      // 修正卡片视觉顺序，从前到后
-      const categoryVisualOrder = ['mildmode', 'ontheedge', 'intense', 'surprise'];
+      let gameData = null; // 存储游戏数据
+      
+      // 卡片堆栈管理
+      let cardOrder = ['mildmode', 'ontheedge', 'intense', 'surprise']; // 卡片顺序
+      let isAnimating = false; // 动画状态锁
 
       const categoryNames = {
         'surprise': '盲盒 Surprise Me',
@@ -516,80 +449,124 @@
         'mildmode': '清汤 Mild Mode'
       };
 
-      const categoryColors = {
-        'surprise': {
-          mainCardColor: 'bg-[#FFC9DC]',
-          mainCardTextColor: 'text-black'
-        },
-        'intense': {
-          mainCardColor: 'bg-[#B8B4FF]',
-          mainCardTextColor: 'text-black'
-        },
-        'ontheedge': {
-          mainCardColor: 'bg-[#A0E7E5]',
-          mainCardTextColor: 'text-black'
-        },
-        'mildmode': {
-          mainCardColor: 'bg-[#C8FD0B]',
-          mainCardTextColor: 'text-black'
-        }
-      };
-
-      const initialTabPositions = {
-        surprise: { left: 'calc(50% - 132px)' },
-        intense: { left: 'calc(50% - 140px)' },
-        ontheedge: { left: 'calc(50% - 148px)' },
-        mildmode: { left: 'calc(50% - 158px)' },
-      };
-
-      categorySelectors.forEach((sel) => {
-        const id = sel.dataset.categoryId;
-        sel.style.left = initialTabPositions[id].left;
-      });
-
-      // 优化后的数据加载 - 使用方案A（推荐）
-      async function loadGameData() {
+      // 异步初始化模块和游戏数据
+      (async function initializeGame() {
         try {
-          console.log('Loading game card IDs from database...');
-          const startTime = performance.now();
+          const supabaseModule = await import('./src/lib/supabase.ts');
+          getGameCardIds = supabaseModule.getGameCardIds;
+          getCardById = supabaseModule.getCardById;
+          getGameByCategoryTag = supabaseModule.getGameByCategoryTag;
+          console.log('✅ Supabase模块加载成功');
           
-          // 并行加载所有分类的卡片ID列表
-          const loadPromises = Object.keys(categoryNames).map(async (categoryId) => {
-            console.log(`Loading card IDs for category: ${categoryId}`);
-            const cardIds = await getGameCardIds('drinking-topics', categoryId);
-            console.log(`Loaded ${cardIds.length} card IDs for ${categoryId}`);
-            
-            cardIdsByCategory[categoryId] = cardIds;
-            availableCardIds[categoryId] = [...cardIds]; // 创建副本
-            usedCardIds[categoryId] = [];
-            
-            return { categoryId, count: cardIds.length };
-          });
-
-          const results = await Promise.all(loadPromises);
-          const loadTime = performance.now() - startTime;
-          
-          console.log(`All card IDs loaded in ${loadTime.toFixed(2)}ms:`, results);
-          
-          // 隐藏加载状态，显示游戏
-          document.getElementById('loadingState').style.display = 'none';
-          document.getElementById('gameContainer').style.display = 'flex';
-          
-          // 设置初始分类
-          setActiveCategory(currentCategoryId);
-          
+          // 模块加载成功后，加载游戏数据
+          await loadGameData();
         } catch (error) {
-          console.error('Error loading game data:', error);
+          console.error('❌ 初始化失败:', error);
+          
+          // 显示错误状态
           document.getElementById('loadingState').style.display = 'none';
           document.getElementById('errorState').style.display = 'block';
+          document.getElementById('errorState').innerHTML = `
+            <p class="mb-4">游戏初始化失败</p>
+            <p class="text-sm text-gray-400 mb-4">错误: ${error.message}</p>
+            <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded">重试</button>
+          `;
         }
-      }
+      })();
 
       function resetCategoryCards(categoryId) {
         if (cardIdsByCategory[categoryId]) {
           availableCardIds[categoryId] = [...cardIdsByCategory[categoryId]];
           usedCardIds[categoryId] = [];
         }
+      }
+
+      // --- 指令：请用以下代码块替换所有相关的JS函数和事件监听 ---
+
+      // 新的渲染函数：只负责根据数组顺序设置所有卡的"静止"状态
+      function renderCardStack() {
+          cardOrder.forEach((categoryId, index) => {
+              const cardElement = document.querySelector(`.stacked-card[data-category='${categoryId}']`);
+              if (!cardElement) return;
+
+              // 清理可能残留的动画类
+              cardElement.classList.remove('slide-left', 'slide-right', 'slide-in-from-left');
+
+              if (index === 0) {
+                  // 设置顶层卡片样式
+                  cardElement.style.transform = 'translateY(0px) scale(1)';
+                  cardElement.style.zIndex = 10;
+                  cardElement.style.opacity = '1';
+                  cardElement.style.pointerEvents = 'auto'; // 允许交互
+              } else {
+                  // 设置下方堆叠卡片的样式
+                  const stackOffset = index * -15;
+                  const stackScale = 1 - (index * 0.05);
+                  cardElement.style.transform = `translateY(${stackOffset}px) scale(${stackScale})`;
+                  cardElement.style.zIndex = 10 - index;
+                  cardElement.style.opacity = '1';
+                  cardElement.style.pointerEvents = 'none'; // 禁止交互
+              }
+          });
+      }
+
+      // 全新的、包含正确逻辑的 handleSwipe 函数
+      function handleSwipe(direction) {
+          if (isAnimating) return;
+          isAnimating = true;
+
+          const outgoingCard = document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`);
+          if (!outgoingCard) {
+              isAnimating = false;
+              return;
+          }
+
+          // 动画结束后的统一清理和状态更新函数
+          const cleanup = (isUndo = false) => {
+              if (isUndo) {
+                  cardOrder.unshift(cardOrder.pop()); // 左滑撤销：最后一张到第一
+              } else {
+                  cardOrder.push(cardOrder.shift()); // 右滑前进：第一张到最后
+              }
+              renderCardStack();
+              updateTopCardText(); // 更新新顶层卡片的文本
+              isAnimating = false;
+          };
+
+          if (direction === 'right') {
+              // --- 右滑：前进 ---
+              outgoingCard.classList.add('slide-right');
+              outgoingCard.addEventListener('animationend', () => cleanup(false), { once: true });
+          } else {
+              // --- 左滑：撤销 ---
+              const incomingCardCategory = cardOrder[cardOrder.length - 1];
+              const incomingCard = document.querySelector(`.stacked-card[data-category='${incomingCardCategory}']`);
+
+              // 顶层卡片滑走（向右滑，给左边腾位置）
+              outgoingCard.classList.add('slide-right');
+              // 底层卡片从左边滑入
+              incomingCard.classList.add('slide-in-from-left');
+
+              // 监听入场卡片的动画结束事件
+              incomingCard.addEventListener('animationend', () => cleanup(true), { once: true });
+          }
+      }
+
+      // 更新顶层卡片文本函数 (小幅修改，以适应新结构)
+      function updateTopCardText() {
+          currentCategoryId = cardOrder[0];
+          const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
+          if (!topCard) return;
+
+          const topicTextEl = topCard.querySelector('.topic-text');
+          topicTextEl.classList.remove('topic-fade-in');
+          topicTextEl.classList.add('topic-fade-out');
+
+          setTimeout(() => {
+              topicTextEl.textContent = '点击卡片开始';
+              topicTextEl.classList.remove('topic-fade-out');
+              topicTextEl.classList.add('topic-fade-in');
+          }, 300);
       }
 
       // 优化后的卡片获取 - 按需加载单张卡片
@@ -616,24 +593,24 @@
         }
       }
 
-      function updateProgressIndicator() {
-        if (!cardIdsByCategory[currentCategoryId]) return;
-        
-        const totalCards = cardIdsByCategory[currentCategoryId].length;
-        const usedCount = usedCardIds[currentCategoryId] ? usedCardIds[currentCategoryId].length : 0;
-        
-        progressIndicator.textContent = `${usedCount}/${totalCards}`;
-      }
-
       async function displayNewTopic() {
         if (!cardIdsByCategory[currentCategoryId]) {
-          topicTextElement.textContent = '话题数据未加载或类型不存在。';
+          const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
+          if (topCard) {
+            const topicTextEl = topCard.querySelector('.topic-text');
+            topicTextEl.textContent = '话题数据未加载或类型不存在。';
+          }
           return;
         }
 
+        const topCard = document.querySelector(`.stacked-card[data-category='${currentCategoryId}']`);
+        if (!topCard) return;
+        
+        const topicTextEl = topCard.querySelector('.topic-text');
+        
         // 显示加载状态
-        topicTextElement.classList.remove('topic-fade-in');
-        topicTextElement.classList.add('topic-fade-out');
+        topicTextEl.classList.remove('topic-fade-in');
+        topicTextEl.classList.add('topic-fade-out');
         
         setTimeout(async () => {
           try {
@@ -645,15 +622,14 @@
               return;
             }
 
-            topicTextElement.textContent = card.content;
-            topicTextElement.classList.remove('topic-fade-out');
-            topicTextElement.classList.add('topic-fade-in');
-            updateProgressIndicator();
+            topicTextEl.textContent = card.content;
+            topicTextEl.classList.remove('topic-fade-out');
+            topicTextEl.classList.add('topic-fade-in');
           } catch (error) {
             console.error('Error displaying new topic:', error);
-            topicTextElement.textContent = '加载话题失败，请重试';
-            topicTextElement.classList.remove('topic-fade-out');
-            topicTextElement.classList.add('topic-fade-in');
+            topicTextEl.textContent = '加载话题失败，请重试';
+            topicTextEl.classList.remove('topic-fade-out');
+            topicTextEl.classList.add('topic-fade-in');
           }
         }, 300);
       }
@@ -678,7 +654,6 @@
 
       window.restartCategory = function() {
         resetCategoryCards(currentCategoryId);
-        updateProgressIndicator();
         closeCompletionModal();
         
         // 显示重新开始消息
@@ -692,169 +667,76 @@
         }, 300);
       }
 
-      function updateTopicCardUnifiedStyle() {
-        if (!categoryColors[currentCategoryId]) {
-          console.warn('Current category data is not available.');
-          return;
-        }
-        const activeCategoryData = categoryColors[currentCategoryId];
-        for (const key in categoryColors) {
-          if (categoryColors.hasOwnProperty(key)) {
-            topicCardElement.classList.remove(
-              categoryColors[key].mainCardColor,
-              categoryColors[key].mainCardTextColor
-            );
-          }
-        }
-        topicCardElement.classList.add(
-          activeCategoryData.mainCardColor,
-          activeCategoryData.mainCardTextColor
-        );
-      }
+      // 移除已不需要的函数，因为现在每个卡片都有自己的颜色
 
-      function setActiveCategory(newCategoryId) {
-        currentCategoryId = newCategoryId;
-        updateTopicCardUnifiedStyle();
-        updateProgressIndicator();
-        
-        // 显示新分类的初始消息
-        topicTextElement.classList.remove('topic-fade-in');
-        topicTextElement.classList.add('topic-fade-out');
-        
-        setTimeout(() => {
-          topicTextElement.textContent = '点击卡片开始';
-          topicTextElement.classList.remove('topic-fade-out');
-          topicTextElement.classList.add('topic-fade-in');
-        }, 300);
+      // --- 事件监听器部分 ---
+      // 注意：监听对象现在是 .card-stack 容器
+      document.addEventListener('DOMContentLoaded', () => {
+          const cardStackContainer = document.querySelector('.card-stack');
+          if (!cardStackContainer) return;
+          
+          let startX = 0;
+          let startY = 0;
+          let isDragging = false;
 
-        const activeSelector = categorySelectors.find(
-          (s) => s.dataset.categoryId === newCategoryId
-        );
+          // 为容器（而非单个卡片）添加事件监听
+          cardStackContainer.addEventListener('mousedown', (e) => {
+              // 只在顶层卡片上按下才有效
+              if (e.target.closest('.stacked-card') !== document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`)) {
+                  return;
+              }
+              startX = e.clientX;
+              startY = e.clientY;
+              isDragging = true;
+          });
 
-        const inactiveSelectorsOrdered = categoryVisualOrder
-          .filter((id) => id !== newCategoryId)
-          .map((id) => categorySelectors.find((s) => s.dataset.categoryId === id));
+          cardStackContainer.addEventListener('mousemove', (e) => {
+              if (!isDragging) return;
+              e.preventDefault();
+          });
 
-        // 激活卡片的样式
-        if (activeSelector) {
-          activeSelector.style.transform = 'translateY(0px) scale(1)';
-          activeSelector.style.zIndex = 50;
-          activeSelector.style.opacity = 1;
-        }
+          cardStackContainer.addEventListener('mouseup', (e) => {
+              if (!isDragging) return;
+              isDragging = false;
 
-        // 非激活卡片的堆叠样式
-        inactiveSelectorsOrdered.forEach((selector, index) => {
-          if (selector) {
-            const depth = index + 1;
-            const translateYFactor = -20; // 堆叠间距
-            const scaleFactor = 0.05; // 每层收缩
-            const opacityFactor = 0.15; // 每层透明度降低
+              const deltaX = e.clientX - startX;
+              const deltaY = e.clientY - startY;
 
-            selector.style.transform = `translateY(${
-              depth * translateYFactor
-            }px) scale(${1 - depth * scaleFactor})`;
-            selector.style.zIndex = 40 - depth * 10;
-            selector.style.opacity = Math.max(0.3, 1 - depth * opacityFactor);
-          }
-        });
-      }
+              if (Math.abs(deltaX) < 50) { // 判断为点击
+                  displayNewTopic();
+              } else if (Math.abs(deltaX) > Math.abs(deltaY)) { // 判断为水平滑动
+                  handleSwipe(deltaX > 0 ? 'right' : 'left');
+              }
+          });
 
+          // 触摸事件同理...
+          cardStackContainer.addEventListener('touchstart', (e) => {
+              if (e.target.closest('.stacked-card') !== document.querySelector(`.stacked-card[data-category='${cardOrder[0]}']`)) {
+                  return;
+              }
+              startX = e.touches[0].clientX;
+              startY = e.touches[0].clientY;
+              isDragging = true;
+          });
+          
+          cardStackContainer.addEventListener('touchend', (e) => {
+              if (!isDragging) return;
+              isDragging = false;
+              
+              const endX = e.changedTouches[0].clientX;
+              const deltaX = endX - startX;
+              
+              if (Math.abs(deltaX) < 50) {
+                  displayNewTopic();
+              } else {
+                  handleSwipe(deltaX > 0 ? 'right' : 'left');
+              }
+          });
+      });
+      
       window.goBack = function() {
         window.location.href = 'index.html';
       }
-
-      topicCardElement.addEventListener('click', (e) => {
-        if (e.target.closest('.category-selector')) {
-          return;
-        }
-        displayNewTopic();
-      });
-
-      // 滑动功能
-      let startX = 0;
-      let startY = 0;
-      let isDragging = false;
-
-      topicCardElement.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        isDragging = true;
-      });
-
-      topicCardElement.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault(); // 防止页面滚动
-      });
-
-      topicCardElement.addEventListener('touchend', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-        const deltaX = endX - startX;
-        const deltaY = endY - startY;
-
-        // 只有当水平滑动距离大于垂直滑动距离且达到最小阈值时才响应
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-          const currentIndex = categoryVisualOrder.indexOf(currentCategoryId);
-          
-          if (deltaX > 0 && currentIndex > 0) {
-            // 右滑：向前一个类型
-            setActiveCategory(categoryVisualOrder[currentIndex - 1]);
-          } else if (deltaX < 0 && currentIndex < categoryVisualOrder.length - 1) {
-            // 左滑：向后一个类型
-            setActiveCategory(categoryVisualOrder[currentIndex + 1]);
-          }
-        } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
-          // 如果是轻点而非滑动，显示新话题
-          displayNewTopic();
-        }
-      });
-
-      // 鼠标事件（用于桌面端测试）
-      topicCardElement.addEventListener('mousedown', (e) => {
-        startX = e.clientX;
-        startY = e.clientY;
-        isDragging = true;
-      });
-
-      topicCardElement.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-      });
-
-      topicCardElement.addEventListener('mouseup', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-          const currentIndex = categoryVisualOrder.indexOf(currentCategoryId);
-          
-          if (deltaX > 0 && currentIndex > 0) {
-            setActiveCategory(categoryVisualOrder[currentIndex - 1]);
-          } else if (deltaX < 0 && currentIndex < categoryVisualOrder.length - 1) {
-            setActiveCategory(categoryVisualOrder[currentIndex + 1]);
-          }
-        } else if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
-          displayNewTopic();
-        }
-      });
-
-      refreshButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        displayNewTopic();
-      });
-
-      categorySelectors.forEach((selector) => {
-        selector.addEventListener('click', (e) => {
-          e.stopPropagation();
-          setActiveCategory(selector.dataset.categoryId);
-        });
-      });
 
       // 关闭完成模态框的事件监听
       document.getElementById('completionModal').addEventListener('click', function(e) {
@@ -871,7 +753,77 @@
       });
 
       // 初始化应用
-      loadGameData();
+      async function loadGameData() {
+        try {
+          console.log('Loading game data from database...');
+          const startTime = performance.now();
+          
+          // 添加超时保护
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database connection timeout')), 10000);
+          });
+          
+          // 首先获取游戏数据
+          gameData = await Promise.race([getGameByCategoryTag('drinking-topics'), timeoutPromise]);
+          if (!gameData) {
+            throw new Error('Game not found with category_tag: drinking-topics');
+          }
+          
+          console.log('Game data loaded:', gameData);
+          
+          // 并行加载所有分类的卡片ID列表，使用正确的游戏ID
+          const loadPromises = Object.keys(categoryNames).map(async (categoryId) => {
+            console.log(`Loading card IDs for category: ${categoryId}`);
+            try {
+              const cardIds = await Promise.race([
+                getGameCardIds(gameData.id, categoryId),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Card loading timeout')), 5000))
+              ]);
+              console.log(`Loaded ${cardIds.length} card IDs for ${categoryId}`);
+              
+              cardIdsByCategory[categoryId] = cardIds;
+              availableCardIds[categoryId] = [...cardIds]; // 创建副本
+              usedCardIds[categoryId] = [];
+              
+              return { categoryId, count: cardIds.length };
+            } catch (error) {
+              console.warn(`Failed to load cards for ${categoryId}:`, error);
+              // 提供默认空数据，避免完全失败
+              cardIdsByCategory[categoryId] = [];
+              availableCardIds[categoryId] = [];
+              usedCardIds[categoryId] = [];
+              return { categoryId, count: 0 };
+            }
+          });
+
+          const results = await Promise.all(loadPromises);
+          const loadTime = performance.now() - startTime;
+          
+          console.log(`All card IDs loaded in ${loadTime.toFixed(2)}ms:`, results);
+          
+          // 隐藏加载状态，显示游戏
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('gameContainer').style.display = 'flex';
+          
+          // 初始化卡片堆栈
+          renderCardStack();
+          updateTopCardText();
+          
+        } catch (error) {
+          console.error('Error loading game data:', error);
+          
+          // 显示错误状态
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('errorState').style.display = 'block';
+          
+          // 添加详细错误信息
+          document.getElementById('errorState').innerHTML = `
+            <p class="mb-4">加载游戏数据失败</p>
+            <p class="text-sm text-gray-400 mb-4">错误: ${error.message}</p>
+            <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded">重试</button>
+          `;
+        }
+      }
     </script>
   </body>
 </html>

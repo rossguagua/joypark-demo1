@@ -62,32 +62,56 @@
         height: 100%;
       }
 
-      .category-selector {
-        transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55),
-          opacity 0.4s ease-out;
-        transform-origin: center top;
-        position: absolute;
-        border-radius: 0.75rem;
-        cursor: pointer;
-      }
+      /* 指令：请用以下代码块，替换掉所有旧的、与卡片和滑动相关的CSS样式 */
 
-      #topic-card {
+      /* 卡片堆叠的容器 */
+      .card-stack {
         position: relative;
-        padding-top: 80px;
-        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.35),
-          0px 4px 12px rgba(0, 0, 0, 0.25);
+        /* 宽度和高度现在由其父容器或直接在元素上定义 */
       }
 
-      #category-selectors-container {
+      /* 独立的、可堆叠的卡片 */
+      .stacked-card {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 80px;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.35);
         display: flex;
-        justify-content: center;
-        align-items: flex-start;
+        flex-direction: column;
+        overflow: hidden;
+        /* 这是让下方卡片平滑移动的核心 */
+        transition: transform 0.4s ease-in-out;
       }
+
+      /* 卡片头部和主体内容（这些样式基本不变） */
+      .card-header { height: 60px; display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; }
+      .category-label { background: rgba(0, 0, 0, 0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+      .card-body { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+      .topic-text { font-size: 28px; font-weight: 900; text-align: center; line-height: 1.3; }
+
+      /* 卡片颜色主题 (不变) */
+      .card-surprise { background: linear-gradient(135deg, #ffc9dc, #ff9bb8); color: #2d1b69; }
+      .card-intense { background: linear-gradient(135deg, #b8b4ff, #9c97ff); color: #1a0d4d; }
+      .card-ontheedge { background: linear-gradient(135deg, #a0e7e5, #7dd3d8); color: #0d4a4f; }
+      .card-mildmode { background: linear-gradient(135deg, #c8fd0b, #a8e600); color: #2d4a0d; }
+
+      /* 滑出动画（现在只应用于滑走的卡片） */
+      @keyframes slideLeftOut { to { transform: translateX(-120%) rotate(-15deg); opacity: 0; } }
+      @keyframes slideRightOut { to { transform: translateX(120%) rotate(15deg); opacity: 0; } }
+
+      /* 滑入动画（仅用于左滑撤销） */
+      @keyframes slideInFromLeft {
+        from { transform: translateX(-120%) rotate(-15deg); opacity: 0; }
+        to { transform: translateX(0) rotate(0); opacity: 1; }
+      }
+
+      .slide-left { animation: slideLeftOut 0.5s ease-in-out forwards; }
+      .slide-right { animation: slideRightOut 0.5s ease-in-out forwards; }
+      .slide-in-from-left { animation: slideInFromLeft 0.5s ease-in-out forwards; }
 
       .back-button {
         position: fixed;
@@ -118,21 +142,20 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* 添加滑动提示样式 */
       .swipe-hint {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 12px;
+        color: #888888;
+        font-size: 14px;
+        font-weight: 600;
         text-align: center;
         animation: pulse-hint 3s infinite;
         pointer-events: none;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        white-space: nowrap;
+        margin-top: 16px;
       }
 
       @keyframes pulse-hint {
-        0%, 100% { opacity: 0.6; }
+        0%, 100% { opacity: 0.8; }
         50% { opacity: 1; }
       }
 
@@ -280,20 +303,6 @@
         background: rgba(255, 255, 255, 0.2);
       }
 
-      /* Progress indicator */
-      .progress-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        z-index: 10;
-      }
-
       .loading-spinner {
         display: inline-block;
         width: 20px;
@@ -318,8 +327,8 @@
         margin: 20px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/game-BXkgKaXf.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/supabase-Bwuv_4SX.js">
+    <script type="module" crossorigin src="/assets/game-C8YRYwmK.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/preload-helper-CS1eXPs2.js">
   </head>
   <body class="bg-[#151515] text-white">
     <!-- Loading State -->
@@ -335,116 +344,45 @@
     </div>
 
     <!-- Game Container -->
-    <div id="gameContainer" class="container w-full max-w-[350px] p-4 flex flex-col items-center" style="display: none;">
-      <div
-        id="topic-card"
-        class="w-full h-[500px] rounded-xl flex flex-col items-center justify-between cursor-pointer transition-colors duration-300 ease-in-out"
-      >
-        <!-- Progress Indicator -->
-        <div id="progressIndicator" class="progress-indicator">
-          0/0
-        </div>
-
-        <div id="category-selectors-container">
-          <div
-            data-category-id="surprise"
-            class="category-selector w-[264px] h-[100px]"
-            style="background-color: #ffc9dc"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #f93c7e; color: #2df92a"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >盲盒 Surprise Me</span
-                >
-              </div>
-            </div>
+    <div id="gameContainer" class="container w-full max-w-[300px] p-4 flex flex-col items-center" style="display: none;">
+      <div class="card-stack w-[300px] h-[450px]">
+        <div class="stacked-card card-surprise" data-category="surprise">
+          <div class="card-header">
+            <div class="category-label">盲盒 Surprise Me</div>
           </div>
-          <div
-            data-category-id="intense"
-            class="category-selector w-[280px] h-[100px]"
-            style="background-color: #b8b4ff"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #342af6; color: #ff2470"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >加麻加辣 Intense</span
-                >
-              </div>
-            </div>
-          </div>
-          <div
-            data-category-id="ontheedge"
-            class="category-selector w-[296px] h-[100px]"
-            style="background-color: #a0e7e5"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #ffc9dc; color: #560ee6"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >微辣 On the Edge</span
-                >
-              </div>
-            </div>
-          </div>
-          <div
-            data-category-id="mildmode"
-            class="category-selector w-[316px] h-[100px]"
-            style="background-color: #c8fd0b"
-          >
-            <div
-              class="absolute right-0 top-1/10 -translate-y-1/4 w-[128px] h-[32px] rounded-lg flex items-center justify-center"
-              style="background-color: #2df92a; color: black"
-            >
-              <div class="category-text-part">
-                <span class="text-xs font-medium font-mi-sans block"
-                  >清汤 Mild Mode</span
-                >
-              </div>
-            </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
           </div>
         </div>
 
-        <div
-          id="topic-text"
-          class="text-3xl md:text-4xl font-extrabold uppercase text-center leading-tight flex items-center justify-center h-full px-4 mt-[20px] mb-auto"
-          style="letter-spacing: 0.02em"
-        >
-          点击卡片开始
+        <div class="stacked-card card-intense" data-category="intense">
+          <div class="card-header">
+            <div class="category-label">加麻加辣 Intense</div>
+          </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
+          </div>
         </div>
 
-        <button
-          id="refresh-button"
-          aria-label="下一个话题"
-          class="bg-black rounded-full p-3 w-16 h-16 flex items-center justify-center text-white shadow-lg mb-6 z-50 hover:bg-gray-800 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-8 h-8"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
-          </svg>
-        </button>
+        <div class="stacked-card card-ontheedge" data-category="ontheedge">
+          <div class="card-header">
+            <div class="category-label">微辣 On the Edge</div>
+          </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
+          </div>
+        </div>
 
-        <div class="swipe-hint">
-          ← 滑动切换类型 | 点击获取新话题 →
+        <div class="stacked-card card-mildmode" data-category="mildmode">
+          <div class="card-header">
+            <div class="category-label">清汤 Mild Mode</div>
+          </div>
+          <div class="card-body">
+            <div class="topic-text">点击卡片开始</div>
+          </div>
         </div>
       </div>
+      <div class="swipe-hint">👈左滑撤销 | 右滑前进👉 | 点击获取话题</div>
     </div>
 
     <!-- Completion Modal -->

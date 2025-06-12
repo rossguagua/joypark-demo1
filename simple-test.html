@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简化测试 - 酒宝公园</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #151515;
+            color: white;
+            padding: 20px;
+        }
+        .game-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            padding: 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 16px 0;
+        }
+        .game-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-md mx-auto">
+        <h1 class="text-2xl font-bold text-center mb-8">酒宝公园 - 游戏库</h1>
+        
+        <div id="status" class="text-center mb-4">
+            <p class="text-yellow-400">正在初始化...</p>
+        </div>
+        
+        <div id="gameContainer" style="display: none;">
+            <div class="game-card" onclick="startGame()">
+                <h2 class="text-xl font-bold mb-2">聊天破冰盲盒</h2>
+                <p class="text-sm opacity-90">打破沉默，开启话题</p>
+                <div class="mt-4">
+                    <span class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">2-8人</span>
+                    <span class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded ml-2">15-30分钟</span>
+                </div>
+            </div>
+            
+            <div class="game-card opacity-50 cursor-not-allowed">
+                <h2 class="text-xl font-bold mb-2">心理测试游戏</h2>
+                <p class="text-sm opacity-90">趣味心理测试</p>
+                <div class="mt-4">
+                    <span class="text-xs bg-yellow-500 text-black px-2 py-1 rounded">即将推出</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8">
+            <button onclick="testFunction()" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">测试功能</button>
+            <button onclick="location.reload()" class="bg-gray-500 text-white px-4 py-2 rounded">刷新页面</button>
+        </div>
+        
+        <div id="debugInfo" class="mt-8 p-4 bg-gray-800 rounded text-xs">
+            <h3 class="font-bold mb-2">调试信息:</h3>
+            <div id="debugContent">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🟢 脚本开始执行');
+        
+        // 显示游戏库
+        function showGames() {
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            updateDebugInfo('✅ 游戏库显示成功');
+            console.log('🟢 游戏库已显示');
+        }
+
+        // 开始游戏
+        function startGame() {
+            console.log('🎮 正在启动游戏...');
+            updateDebugInfo('🎮 正在跳转到游戏页面...');
+            window.location.href = 'drinking-game.html';
+        }
+
+        // 测试功能
+        function testFunction() {
+            console.log('🔧 测试功能被调用');
+            alert('测试功能正常！页面JavaScript运行正常。');
+            updateDebugInfo('🔧 测试功能正常执行');
+        }
+
+        // 更新调试信息
+        function updateDebugInfo(message) {
+            const debugContent = document.getElementById('debugContent');
+            const timestamp = new Date().toLocaleTimeString();
+            debugContent.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+        }
+
+        // 初始化
+        function init() {
+            console.log('🚀 开始初始化...');
+            updateDebugInfo('🚀 页面初始化开始');
+            updateDebugInfo('🌐 当前URL: ' + window.location.href);
+            updateDebugInfo('📱 用户代理: ' + navigator.userAgent.substring(0, 50) + '...');
+            
+            // 延迟显示游戏库，模拟加载过程
+            setTimeout(() => {
+                console.log('⏰ 延迟执行完成，显示游戏库');
+                showGames();
+            }, 1000);
+        }
+
+        // 页面加载完成后执行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // 错误处理
+        window.addEventListener('error', function(e) {
+            console.error('❌ 页面错误:', e);
+            updateDebugInfo('❌ 错误: ' + e.message);
+        });
+
+        console.log('🟢 脚本定义完成');
+    </script>
+</body>
+</html> 

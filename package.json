@@ -11,11 +11,15 @@
     "start": "vite",
     "serve": "vite preview"
   },
-  "keywords": ["games", "mobile", "drinking-games"],
+  "keywords": [
+    "games",
+    "mobile",
+    "drinking-games"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.50.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"

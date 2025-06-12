@@ -1,15 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase 配置 - 请在这里填入你的项目信息
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://frqjqmwuznhjqukdmexg.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U'
+const supabaseUrl = (import.meta as any)?.env?.VITE_SUPABASE_URL || 'https://frqjqmwuznhjqukdmexg.supabase.co'
+const supabaseAnonKey = (import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U'
 
-// 验证配置
-if (!supabaseUrl || supabaseUrl === 'https://frqjqmwuznhjqukdmexg.supabase.co' || 
-    !supabaseAnonKey || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U') {
+// 验证基本配置存在
+if (!supabaseUrl || !supabaseAnonKey) {
   console.error('请配置 Supabase URL 和 ANON KEY')
-  console.log('请将 src/lib/supabase.ts 中的占位符替换为你的实际 Supabase 项目信息')
-  throw new Error('Missing Supabase configuration. Please update src/lib/supabase.ts with your project details.')
+  throw new Error('Missing Supabase configuration.')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -52,8 +50,43 @@ export async function getGames(): Promise<Game[]> {
   return data || []
 }
 
+// 根据分类标签获取单个游戏
+export async function getGameByCategoryTag(categoryTag: string): Promise<Game | null> {
+  const { data, error } = await supabase
+    .from('games')
+    .select('id, name, category_tag, description, features, players, duration, is_active, created_at')
+    .eq('category_tag', categoryTag)
+    .eq('is_active', true)
+    .single()
+
+  if (error) {
+    console.error('Error fetching game by category tag:', error)
+    throw error
+  }
+
+  return data
+}
+
 // 获取指定游戏的卡片ID列表（方案A - 推荐）
-export async function getGameCardIds(categoryTag: string, category: string): Promise<string[]> {
+export async function getGameCardIds(gameId: string, category: string): Promise<string[]> {
+  // 只获取卡片ID列表，不获取内容
+  const { data, error } = await supabase
+    .from('cards')
+    .select('id')
+    .eq('game_id', gameId)
+    .eq('category', category)
+    .eq('is_active', true)
+
+  if (error) {
+    console.error('Error fetching card IDs:', error)
+    throw error
+  }
+
+  return (data || []).map(card => card.id)
+}
+
+// 保持向后兼容的函数（根据分类标签获取卡片ID）
+export async function getGameCardIdsByCategoryTag(categoryTag: string, category: string): Promise<string[]> {
   // 首先获取游戏ID
   const { data: gameData, error: gameError } = await supabase
     .from('games')
@@ -71,20 +104,7 @@ export async function getGameCardIds(categoryTag: string, category: string): Pro
     throw new Error(`Game with category_tag "${categoryTag}" not found`)
   }
 
-  // 只获取卡片ID列表，不获取内容
-  const { data, error } = await supabase
-    .from('cards')
-    .select('id')
-    .eq('game_id', gameData.id)
-    .eq('category', category)
-    .eq('is_active', true)
-
-  if (error) {
-    console.error('Error fetching card IDs:', error)
-    throw error
-  }
-
-  return (data || []).map(card => card.id)
+  return getGameCardIds(gameData.id, category)
 }
 
 // 根据卡片ID获取单张卡片内容
@@ -104,52 +124,7 @@ export async function getCardById(cardId: string): Promise<Card | null> {
   return data
 }
 
-// 获取随机卡片（方案B - 备选）
-export async function getRandomCard(categoryTag: string, category: string, excludeIds: string[] = []): Promise<Card | null> {
-  // 首先获取游戏ID
-  const { data: gameData, error: gameError } = await supabase
-    .from('games')
-    .select('id')
-    .eq('category_tag', categoryTag)
-    .eq('is_active', true)
-    .single()
 
-  if (gameError) {
-    console.error('Error fetching game:', gameError)
-    throw gameError
-  }
-
-  if (!gameData) {
-    throw new Error(`Game with category_tag "${categoryTag}" not found`)
-  }
-
-  // 构建查询，排除已使用的卡片
-  let query = supabase
-    .from('cards')
-    .select('*')
-    .eq('game_id', gameData.id)
-    .eq('category', category)
-    .eq('is_active', true)
-
-  if (excludeIds.length > 0) {
-    query = query.not('id', 'in', `(${excludeIds.join(',')})`)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Error fetching random card:', error)
-    throw error
-  }
-
-  if (!data || data.length === 0) {
-    return null
-  }
-
-  // 在前端随机选择一张卡片
-  const randomIndex = Math.floor(Math.random() * data.length)
-  return data[randomIndex]
-}
 
 // 保持向后兼容的函数（已弃用，建议使用新的优化函数）
 export async function getCardsByCategory(categoryTag: string, category: string): Promise<Card[]> {
