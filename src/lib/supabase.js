@@ -47,6 +47,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
+      'apikey': supabaseAnonKey,
+      'Authorization': `Bearer ${supabaseAnonKey}`,
       'Cache-Control': 'no-cache',
       'Content-Type': 'application/json',
       ...(isMobile && {
@@ -60,6 +62,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       const fetchOptions = {
         ...options,
         headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           ...options.headers
