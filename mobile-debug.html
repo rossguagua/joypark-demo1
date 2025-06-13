@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移动端调试 - Supabase连接测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0f0f0f; 
+            color: white;
+            padding: 20px;
+        }
+        .debug-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .success { border-color: #22c55e; background: #052e16; }
+        .error { border-color: #ef4444; background: #450a0a; }
+        .warning { border-color: #f59e0b; background: #451a03; }
+        .info { border-color: #3b82f6; background: #1e3a8a; }
+        .log { 
+            background: #111; 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px;
+            padding: 12px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">🔍 移动端Supabase连接诊断</h1>
+        
+        <!-- 设备信息 -->
+        <div class="debug-box info">
+            <h2 class="text-lg font-semibold mb-2">📱 设备信息</h2>
+            <div id="deviceInfo"></div>
+        </div>
+
+        <!-- 网络状态 -->
+        <div class="debug-box" id="networkStatus">
+            <h2 class="text-lg font-semibold mb-2">🌐 网络状态</h2>
+            <div id="networkInfo"></div>
+        </div>
+
+        <!-- 模块加载测试 -->
+        <div class="debug-box" id="moduleTest">
+            <h2 class="text-lg font-semibold mb-2">📦 模块加载测试</h2>
+            <div id="moduleInfo">正在测试...</div>
+        </div>
+
+        <!-- Supabase连接测试 -->
+        <div class="debug-box" id="supabaseTest">
+            <h2 class="text-lg font-semibold mb-2">🗄️ Supabase连接测试</h2>
+            <div id="supabaseInfo">正在测试...</div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="debug-box">
+            <h2 class="text-lg font-semibold mb-2">🎮 操作</h2>
+            <div class="space-y-2">
+                <button onclick="testBasicFetch()" class="bg-blue-600 text-white px-4 py-2 rounded mr-2">测试基础网络请求</button>
+                <button onclick="testSupabaseConnection()" class="bg-green-600 text-white px-4 py-2 rounded mr-2">重新测试Supabase</button>
+                <button onclick="enableOfflineMode()" class="bg-orange-600 text-white px-4 py-2 rounded mr-2">强制离线模式</button>
+                <button onclick="clearLogs()" class="bg-gray-600 text-white px-4 py-2 rounded">清空日志</button>
+            </div>
+        </div>
+
+        <!-- 实时日志 -->
+        <div class="debug-box">
+            <h2 class="text-lg font-semibold mb-2">📋 实时日志</h2>
+            <div id="logs" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        let logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logs.push(logEntry);
+            
+            const logElement = document.getElementById('logs');
+            logElement.textContent = logs.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+
+        function updateStatus(elementId, content, className = '') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = content;
+            if (className) {
+                element.className = element.className.replace(/\b(success|error|warning|info)\b/g, '');
+                element.classList.add(className);
+            }
+        }
+
+        // 设备信息检测
+        function detectDevice() {
+            const info = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                online: navigator.onLine,
+                cookieEnabled: navigator.cookieEnabled,
+                language: navigator.language,
+                vendor: navigator.vendor,
+                screen: `${screen.width}x${screen.height}`,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                pixelRatio: window.devicePixelRatio,
+                connection: navigator.connection ? {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : '不支持'
+            };
+
+            log(`设备检测完成: ${JSON.stringify(info, null, 2)}`);
+            
+            const content = `
+                <div><strong>用户代理:</strong> ${info.userAgent}</div>
+                <div><strong>平台:</strong> ${info.platform}</div>
+                <div><strong>在线状态:</strong> ${info.online ? '✅ 在线' : '❌ 离线'}</div>
+                <div><strong>Cookie:</strong> ${info.cookieEnabled ? '✅ 启用' : '❌ 禁用'}</div>
+                <div><strong>语言:</strong> ${info.language}</div>
+                <div><strong>屏幕:</strong> ${info.screen}</div>
+                <div><strong>视口:</strong> ${info.viewport}</div>
+                <div><strong>像素比:</strong> ${info.pixelRatio}</div>
+                <div><strong>网络:</strong> ${typeof info.connection === 'object' ? 
+                    `${info.connection.effectiveType} (${info.connection.downlink}Mbps, ${info.connection.rtt}ms)` : 
+                    info.connection}</div>
+            `;
+            updateStatus('deviceInfo', content);
+        }
+
+        // 网络状态监测
+        function setupNetworkMonitoring() {
+            const updateNetwork = () => {
+                const online = navigator.onLine;
+                const content = `
+                    <div><strong>状态:</strong> ${online ? '✅ 在线' : '❌ 离线'}</div>
+                    <div><strong>检测时间:</strong> ${new Date().toLocaleString()}</div>
+                `;
+                updateStatus('networkInfo', content, online ? 'success' : 'error');
+                log(`网络状态: ${online ? '在线' : '离线'}`);
+            };
+
+            window.addEventListener('online', () => {
+                log('网络连接已恢复');
+                updateNetwork();
+            });
+
+            window.addEventListener('offline', () => {
+                log('网络连接已断开');
+                updateNetwork();
+            });
+
+            updateNetwork();
+        }
+
+        // 模块加载测试
+        async function testModules() {
+            try {
+                log('开始测试模块加载...');
+                
+                // 测试import.meta.env
+                let envTest = 'N/A';
+                try {
+                    envTest = import.meta.env ? '✅ 可用' : '❌ 不可用';
+                } catch (e) {
+                    envTest = `❌ 错误: ${e.message}`;
+                }
+                
+                // 测试ES6模块
+                const moduleTest = await import('./src/lib/supabase.js');
+                log('Supabase模块加载成功');
+                
+                const content = `
+                    <div><strong>import.meta.env:</strong> ${envTest}</div>
+                    <div><strong>ES6模块:</strong> ✅ 支持</div>
+                    <div><strong>Supabase模块:</strong> ✅ 加载成功</div>
+                `;
+                updateStatus('moduleInfo', content, 'success');
+                
+                return moduleTest;
+            } catch (error) {
+                log(`模块加载失败: ${error.message}`);
+                const content = `
+                    <div><strong>错误:</strong> ${error.message}</div>
+                    <div><strong>堆栈:</strong> <pre style="font-size: 10px; margin-top: 8px;">${error.stack}</pre></div>
+                `;
+                updateStatus('moduleInfo', content, 'error');
+                return null;
+            }
+        }
+
+        // Supabase连接测试
+        async function testSupabase() {
+            try {
+                log('开始测试Supabase连接...');
+                
+                const supabaseModule = await import('./src/lib/supabase.js');
+                log('Supabase模块导入成功');
+                
+                // 测试简单查询
+                const games = await supabaseModule.getGames();
+                log(`Supabase查询成功，获取到 ${games.length} 个游戏`);
+                
+                const content = `
+                    <div><strong>模块导入:</strong> ✅ 成功</div>
+                    <div><strong>数据库查询:</strong> ✅ 成功</div>
+                    <div><strong>游戏数量:</strong> ${games.length}</div>
+                    <div><strong>测试时间:</strong> ${new Date().toLocaleString()}</div>
+                `;
+                updateStatus('supabaseInfo', content, 'success');
+                
+            } catch (error) {
+                log(`Supabase连接失败: ${error.message}`);
+                const content = `
+                    <div><strong>错误:</strong> ${error.message}</div>
+                    <div><strong>类型:</strong> ${error.name}</div>
+                    <div><strong>详情:</strong> <pre style="font-size: 10px; margin-top: 8px;">${error.stack}</pre></div>
+                `;
+                updateStatus('supabaseInfo', content, 'error');
+            }
+        }
+
+        // 基础网络测试
+        window.testBasicFetch = async function() {
+            try {
+                log('开始基础网络测试...');
+                const response = await fetch('https://httpbin.org/json', { 
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                log(`基础网络测试成功: ${JSON.stringify(data)}`);
+            } catch (error) {
+                log(`基础网络测试失败: ${error.message}`);
+            }
+        };
+
+        // 重新测试Supabase
+        window.testSupabaseConnection = function() {
+            testSupabase();
+        };
+
+        // 强制离线模式
+        window.enableOfflineMode = function() {
+            localStorage.setItem('forceOfflineMode', 'true');
+            log('已强制启用离线模式');
+            alert('离线模式已启用，请返回游戏页面测试');
+        };
+
+        // 清空日志
+        window.clearLogs = function() {
+            logs = [];
+            document.getElementById('logs').textContent = '';
+        };
+
+        // 初始化
+        log('🚀 移动端诊断工具启动');
+        detectDevice();
+        setupNetworkMonitoring();
+        
+        // 延迟测试模块和Supabase
+        setTimeout(async () => {
+            await testModules();
+            await testSupabase();
+        }, 1000);
+    </script>
+</body>
+</html> 

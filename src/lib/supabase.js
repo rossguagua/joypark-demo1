@@ -1,14 +1,38 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase 配置 - 请在这里填入你的项目信息
-const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://frqjqmwuznhjqukdmexg.supabase.co'
-const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U'
+// Supabase 配置 - 移动端兼容性修复
+let supabaseUrl, supabaseAnonKey;
+
+try {
+  // 尝试获取环境变量（Vite环境）
+  supabaseUrl = import.meta.env?.VITE_SUPABASE_URL;
+  supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY;
+} catch (error) {
+  console.log('环境变量不可用，使用硬编码配置');
+}
+
+// 如果环境变量不可用，使用硬编码配置（移动端fallback）
+if (!supabaseUrl || !supabaseAnonKey) {
+  supabaseUrl = 'https://frqjqmwuznhjqukdmexg.supabase.co';
+  supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U';
+  console.log('使用硬编码Supabase配置');
+}
 
 // 验证基本配置存在
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('请配置 Supabase URL 和 ANON KEY')
+  console.error('❌ Supabase配置缺失:')
+  console.error('   URL:', supabaseUrl)
+  console.error('   Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'undefined')
   throw new Error('Missing Supabase configuration.')
 }
+
+console.log('✅ Supabase配置已加载:')
+console.log('   URL:', supabaseUrl)
+console.log('   Key:', `${supabaseAnonKey.substring(0, 20)}...`)
+console.log('   移动端模式:', isMobile)
+
+// 检测移动端浏览器
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // 针对移动端优化的Supabase配置
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -19,22 +43,46 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'Cache-Control': 'no-cache'
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json',
+      ...(isMobile && {
+        'User-Agent': navigator.userAgent + ' MobileApp'
+      })
     },
     fetch: (url, options = {}) => {
-      // 移动端网络优化：增加超时时间和重试机制
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+      console.log(`🌐 Supabase请求: ${url}`);
       
-      return fetch(url, {
+      // 移动端简化的fetch配置
+      const fetchOptions = {
         ...options,
-        signal: controller.signal,
-        // 移动端网络优化选项
-        keepalive: true,
-        cache: 'no-cache'
-      }).finally(() => {
-        clearTimeout(timeoutId);
-      });
+        headers: {
+          ...options.headers,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      // 移动端不使用AbortController，因为可能有兼容性问题
+      if (isMobile) {
+        console.log('📱 移动端模式：使用简化fetch配置');
+        return fetch(url, fetchOptions);
+      } else {
+        // 桌面端使用完整配置
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          console.warn('请求超时，中止连接');
+          controller.abort();
+        }, 15000);
+        
+        return fetch(url, {
+          ...fetchOptions,
+          signal: controller.signal,
+          keepalive: true,
+          cache: 'no-cache'
+        }).finally(() => {
+          clearTimeout(timeoutId);
+        });
+      }
     }
   }
 })
