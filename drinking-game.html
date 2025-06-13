@@ -116,19 +116,19 @@
       .card-intense {
         background: #FF6B9D;
         z-index: 3;
-        transform: translate(40px, -30px) scale(0.96);
+        transform: translate(40px, -60px) scale(0.96);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-ontheedge {
         background: #B8B5FF;
         z-index: 2;
-        transform: translate(80px, -60px) scale(0.92);
+        transform: translate(60px, -90px) scale(0.92);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-mildmode {
         background: #6DD5B3;
         z-index: 1;
-        transform: translate(120px, -90px) scale(0.88);
+        transform: translate(80px, -120px) scale(0.88);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
 
@@ -639,8 +639,8 @@
                   cardElement.style.pointerEvents = 'auto';
               } else {
                   // 下方的堆叠卡片 - 更大偏移让所有标签清楚可见
-                  const stackOffsetX = index * 40; // 增大水平偏移
-                  const stackOffsetY = index * -30; // 保持垂直偏移
+                  const stackOffsetX = index * 20; // 增大水平偏移
+                  const stackOffsetY = index * -60; // 保持垂直偏移
                   const stackScale = 1 - (index * 0.04); // 稍微增大缩放差异
                   cardElement.style.transform = `translate(${stackOffsetX}px, ${stackOffsetY}px) scale(${stackScale})`;
                   cardElement.style.zIndex = 10 - index;
