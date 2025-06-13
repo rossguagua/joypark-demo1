@@ -132,18 +132,42 @@ export async function hybridGetGameData(categoryTag) {
   try {
     // 先尝试从网络获取
     const { getGameByCategoryTag } = await import('./supabase.js');
-    return await getGameByCategoryTag(categoryTag);
+    const result = await getGameByCategoryTag(categoryTag);
+    
+    // 如果网络返回null或数据不完整，fallback到离线数据
+    if (!result || !result.id) {
+      console.log('网络返回空数据或不完整，使用离线数据');
+      return fallbackGameData;
+    }
+    
+    return result;
   } catch (error) {
-    console.warn('网络获取失败，使用离线数据:', error.message);
+    console.warn('网络获取游戏数据失败，使用离线数据:', error.message);
     return fallbackGameData;
   }
 }
 
 export async function hybridGetGameCardIds(gameId, category) {
+  // 如果gameId为空或不是UUID格式，直接使用离线数据
+  const isUUID = gameId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gameId);
+  
+  if (!isUUID) {
+    console.log(`游戏ID "${gameId}" 不是UUID格式或为空，使用离线数据`);
+    return getOfflineCardIds(category);
+  }
+  
   try {
-    // 先尝试从网络获取
+    // 先尝试从网络获取（仅当gameId是UUID格式时）
     const { getGameCardIds } = await import('./supabase.js');
-    return await getGameCardIds(gameId, category);
+    const result = await getGameCardIds(gameId, category);
+    
+    // 如果网络返回空数组，fallback到离线数据
+    if (!result || result.length === 0) {
+      console.log('网络返回空数据，使用离线数据');
+      return getOfflineCardIds(category);
+    }
+    
+    return result;
   } catch (error) {
     console.warn('网络获取卡片ID失败，使用离线数据:', error.message);
     return getOfflineCardIds(category);
@@ -151,8 +175,16 @@ export async function hybridGetGameCardIds(gameId, category) {
 }
 
 export async function hybridGetCardById(cardId) {
+  // 检查ID格式，如果不是UUID格式，直接使用离线数据
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cardId);
+  
+  if (!isUUID) {
+    console.log(`卡片ID "${cardId}" 不是UUID格式，使用离线数据`);
+    return getOfflineCardById(cardId);
+  }
+  
   try {
-    // 先尝试从网络获取
+    // 先尝试从网络获取（仅当ID是UUID格式时）
     const { getCardById } = await import('./supabase.js');
     return await getCardById(cardId);
   } catch (error) {
