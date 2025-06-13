@@ -11,10 +11,10 @@
         background-color: #151515;
         display: flex;
         justify-content: center;
-        align-items: center; /* 改为 center 使其垂直居中 */
+        align-items: center; /* 垂直居中 */
         min-height: 100vh;
-        padding-top: 0; /* 移除顶部内边距 */
-        padding-bottom: 0; /* 移除底部内边距 */
+        padding: 0; /* 完全移除内边距 */
+        margin: 0; /* 移除外边距 */
         overflow: hidden; /* 禁用滚动 */
       }
 
@@ -71,11 +71,9 @@
         position: relative;
         width: 300px;
         height: 450px;
-        margin: 0 auto;
         perspective: 1000px;
-        /* 确保在移动设备上完全居中 */
-        left: 50%;
-        transform: translateX(-50%);
+        margin-top: 125px;
+        /* 让flex布局自然处理居中，无需手动偏移 */
       }
 
       .stacked-card {
@@ -83,85 +81,93 @@
         width: 100%;
         height: 100%;
         border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: all 0.3s ease;
         overflow: hidden;
         backface-visibility: hidden;
       }
 
-      /* 卡片背景颜色 */
+      /* 简洁的卡片悬停效果 */
+      .stacked-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        z-index: 10;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 保持堆叠卡片的悬停偏移 - 让动画更流畅 */
+      .card-intense:hover {
+        transform: translate(40px, -38px) scale(1.02);
+      }
+      
+      .card-ontheedge:hover {
+        transform: translate(80px, -68px) scale(1.02);
+      }
+      
+      .card-mildmode:hover {
+        transform: translate(120px, -98px) scale(1.02);
+      }
+
+      /* 卡片背景颜色 - 调整为更好的标签可见性 */
       .card-surprise {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #C8FF00;
         z-index: 4;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-intense {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        background: #FF6B9D;
         z-index: 3;
-        transform: translate(4px, 4px) scale(0.98);
+        transform: translate(40px, -60px) scale(0.96);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-ontheedge {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        background: #B8B5FF;
         z-index: 2;
-        transform: translate(8px, 8px) scale(0.96);
+        transform: translate(60px, -90px) scale(0.92);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
       .card-mildmode {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        background: #6DD5B3;
         z-index: 1;
-        transform: translate(12px, 12px) scale(0.94);
+        transform: translate(80px, -120px) scale(0.88);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
 
-      /* 卡片头部样式 */
+      /* 卡片头部样式 - 移除，标签直接定位在卡片上 */
       .card-header {
-        padding: 20px;
-        display: flex;
-        justify-content: center;
+        padding: 0;
+        display: block;
         position: relative;
+        height: 0;
       }
 
-      /* 美化标签样式 - 书签式设计 */
+      /* 简洁标签样式 - 完全按照用户图片设计 */
       .category-label {
-        position: relative;
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.9);
         color: #333;
         padding: 8px 16px;
         font-size: 13px;
-        font-weight: 700;
-        border-radius: 12px 12px 0 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transform: perspective(200px) rotateX(-10deg);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-      }
-
-      /* 书签式标签的下方"切口" */
-      .category-label:after {
-        content: '';
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.2s ease;
+        text-align: center;
         position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-top: 8px solid rgba(255, 255, 255, 0.95);
-        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+        top: 12px;
+        right: 12px;
+        margin: 0;
       }
 
       /* 悬停效果 */
       .stacked-card:hover .category-label {
-        transform: perspective(200px) rotateX(0deg);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         background: rgba(255, 255, 255, 1);
+        transform: scale(1.05);
       }
 
       /* 卡片主体 */
       .card-body {
-        padding: 40px 20px;
+        padding: 60px 20px 20px 20px;
         text-align: center;
-        height: calc(100% - 100px);
+        height: calc(100% - 80px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -447,7 +453,7 @@
         margin: 20px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/game-v9DWh7vo.js"></script>
+    <script type="module" crossorigin src="/assets/game-DpRrc3vg.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/preload-helper-CS1eXPs2.js">
   </head>
   <body class="bg-[#151515] text-white">
@@ -471,7 +477,7 @@
             <div class="category-label">盲盒 Surprise Me</div>
           </div>
           <div class="card-body">
-            <div class="topic-text">点击卡片开始</div>
+            <div class="topic-text">如果你的生活是一部电影，你觉得现在是什么类型？</div>
           </div>
         </div>
 
@@ -547,6 +553,6 @@
       </svg>
       返回游戏库
     </button>
-
+
   </body>
 </html>
