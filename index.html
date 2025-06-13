@@ -487,7 +487,8 @@
         <!-- Loading State -->
         <div id="loadingState" class="text-center py-8">
             <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-gray-400">正在加载游戏...</p>
+            <p class="text-gray-400">正在连接数据库...</p>
+            <p class="text-gray-500 text-sm mt-2">请稍候，首次加载可能需要几秒钟</p>
         </div>
 
         <!-- Main Game Section -->
@@ -576,17 +577,21 @@
                     console.log('🔄 尝试从数据库加载数据...');
                     loadGames();
                 } else {
-                    console.log('📄 直接使用fallback数据');
-                    // 显示警告但不阻止页面使用
-                    document.getElementById('loadingState').innerHTML = `
-                        <div class="text-center py-2 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
-                            <p class="text-yellow-400 text-sm">⚠️ 数据库模块未加载，使用本地数据</p>
-                        </div>
-                    `;
-                    document.getElementById('loadingState').style.display = 'block';
-                    
-                    // 确保使用 fallback 数据也能正常渲染页面
-                    renderGames();
+                    console.log('📄 模块加载失败，等待3秒后使用fallback数据');
+                    // 等待3秒再显示fallback，给网络一些时间
+                    setTimeout(() => {
+                        console.log('📄 超时后使用fallback数据');
+                        // 显示警告但不阻止页面使用
+                        document.getElementById('loadingState').innerHTML = `
+                            <div class="text-center py-2 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
+                                <p class="text-yellow-400 text-sm">⚠️ 数据库连接失败，使用本地数据</p>
+                            </div>
+                        `;
+                        document.getElementById('loadingState').style.display = 'block';
+                        
+                        // 确保使用 fallback 数据也能正常渲染页面
+                        renderGames();
+                    }, 3000);
                 }
                 
             } catch (error) {
@@ -598,16 +603,19 @@
                     console.log('📊 Analytics完全离线模式:', eventType, eventData);
                 };
                 
-                // 显示错误状态但仍然渲染页面
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="text-center py-2 mb-4 bg-red-900/20 border border-red-500/30 rounded-lg mx-6">
-                        <p class="text-red-400 text-sm">⚠️ 模块加载失败，使用离线模式</p>
-                    </div>
-                `;
-                document.getElementById('loadingState').style.display = 'block';
-                
-                // 确保页面仍然可用
-                renderGames();
+                // 等待5秒后显示错误状态和fallback数据
+                setTimeout(() => {
+                    console.log('📄 完全失败，最终使用fallback数据');
+                    document.getElementById('loadingState').innerHTML = `
+                        <div class="text-center py-2 mb-4 bg-red-900/20 border border-red-500/30 rounded-lg mx-6">
+                            <p class="text-red-400 text-sm">⚠️ 模块加载失败，使用离线模式</p>
+                        </div>
+                    `;
+                    document.getElementById('loadingState').style.display = 'block';
+                    
+                    // 确保页面仍然可用
+                    renderGames();
+                }, 5000);
             }
         })();
 
@@ -649,13 +657,11 @@
                 console.log('Loading games from database...');
                 const startTime = performance.now();
                 
-                // 移动端友好的超时保护
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('移动端数据库连接超时')), 15000);
-                });
+                // 不使用额外超时保护，让Supabase的fetch超时机制生效
+                console.log('🔄 正在从数据库获取游戏列表...');
                 
                 // 只获取游戏基础信息，不包含卡片数据和图片URL
-                const games = await Promise.race([getGames(), timeoutPromise]);
+                const games = await getGames();
                 
                 const loadTime = performance.now() - startTime;
                 console.log(`Games loaded in ${loadTime.toFixed(2)}ms:`, games);

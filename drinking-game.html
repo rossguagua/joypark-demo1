@@ -1117,13 +1117,11 @@
           console.log('Loading game data from database...');
           const startTime = performance.now();
           
-          // 针对移动端增加更长的超时保护
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('移动端网络连接超时，请检查网络后重试')), 20000);
-          });
+          // 不使用额外超时保护，让Supabase的fetch超时机制生效
+          console.log('🔄 正在获取游戏数据...');
           
           // 首先获取游戏数据
-          gameData = await Promise.race([getGameByCategoryTag('drinking-topics'), timeoutPromise]);
+          gameData = await getGameByCategoryTag('drinking-topics');
           if (!gameData) {
             throw new Error('Game not found with category_tag: drinking-topics');
           }
@@ -1134,11 +1132,9 @@
           const loadPromises = Object.keys(categoryNames).map(async (categoryId) => {
             console.log(`Loading card IDs for category: ${categoryId}`);
             try {
-              const cardIds = await Promise.race([
-                getGameCardIds(gameData.id, categoryId),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('卡片加载超时')), 15000))
-              ]);
-              console.log(`Loaded ${cardIds.length} card IDs for ${categoryId}`);
+              console.log(`🔄 正在加载 ${categoryId} 分类的卡片...`);
+              const cardIds = await getGameCardIds(gameData.id, categoryId);
+              console.log(`✅ 成功加载 ${cardIds.length} 张 ${categoryId} 卡片`);
               
               cardIdsByCategory[categoryId] = cardIds;
               availableCardIds[categoryId] = [...cardIds]; // 创建副本

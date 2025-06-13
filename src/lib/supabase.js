@@ -70,29 +70,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         }
       };
       
-      // 移动端使用简化配置，桌面端使用超时控制
-      if (isMobile) {
-        console.log('📱 移动端模式：使用简化fetch配置');
-        return fetch(url, fetchOptions).catch(error => {
-          console.error('📱 移动端fetch失败:', error);
-          throw error;
-        });
-      } else {
-        console.log('💻 桌面端模式：使用完整fetch配置');
-        // 桌面端使用超时控制
+              // 统一使用超时控制，但移动端给更长时间
+        const timeout = isMobile ? 20000 : 10000; // 移动端20秒，桌面端10秒
+        
+        console.log(`${isMobile ? '📱 移动端' : '💻 桌面端'}模式：超时时间${timeout/1000}秒`);
+        
         return Promise.race([
           fetch(url, {
             ...fetchOptions,
             cache: 'no-cache'
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('请求超时')), 10000)
+            setTimeout(() => reject(new Error(`请求超时 (${timeout/1000}秒)`)), timeout)
           )
         ]).catch(error => {
-          console.error('💻 桌面端fetch失败:', error);
+          console.error(`${isMobile ? '📱 移动端' : '💻 桌面端'}fetch失败:`, error);
           throw error;
         });
-      }
     }
   }
 })
