@@ -146,17 +146,17 @@
             scroll-behavior: smooth;
         }
 
-        /* 粉红色调主游戏卡片样式 */
+        /* 深红色调主游戏卡片样式 */
         .main-game-fallback {
-            background: linear-gradient(135deg, #FF6392 0%, #FFAF7B 30%, #FFD93D 70%, #FFAA64 100%);
+            background: linear-gradient(135deg, #A22437 0%, #801323 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             padding: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 8px 25px rgba(255, 99, 146, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 25px rgba(199, 44, 65, 0.4);
             position: relative;
             overflow: hidden;
         }
@@ -196,14 +196,14 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* 粉红色调Modal样式设计 */
+        /* 深红色调Modal样式设计 */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 99, 146, 0.1) 0%, rgba(255, 175, 123, 0.15) 50%, rgba(0, 0, 0, 0.8) 100%);
+            background: linear-gradient(135deg, rgba(199, 44, 65, 0.1) 0%, rgba(162, 36, 55, 0.15) 50%, rgba(0, 0, 0, 0.8) 100%);
             backdrop-filter: blur(12px) saturate(120%);
             z-index: 1000;
             display: flex;
@@ -224,7 +224,7 @@
             background: linear-gradient(135deg, 
                 rgba(255, 255, 255, 0.98) 0%, 
                 rgba(248, 250, 252, 0.95) 30%,
-                rgba(255, 99, 146, 0.05) 100%);
+                rgba(199, 44, 65, 0.05) 100%);
             backdrop-filter: blur(30px) saturate(150%);
             border: 3px solid rgba(255, 255, 255, 0.9);
             border-radius: 32px;
@@ -237,7 +237,7 @@
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             overflow: hidden;
             box-shadow: 
-                0 25px 50px rgba(255, 99, 146, 0.2),
+                0 25px 50px rgba(199, 44, 65, 0.2),
                 0 10px 30px rgba(0, 0, 0, 0.15),
                 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
         }
@@ -246,16 +246,16 @@
             transform: translateY(0) scale(1) rotateX(0deg);
         }
 
-        /* 粉红色调头部设计 */
+        /* 深红色调头部设计 */
         .modal-header {
             background: linear-gradient(135deg, 
-                rgba(255, 99, 146, 0.08) 0%, 
-                rgba(255, 175, 123, 0.05) 50%,
+                rgba(199, 44, 65, 0.08) 0%, 
+                rgba(162, 36, 55, 0.05) 50%,
                 rgba(255, 255, 255, 0.02) 100%);
             padding: 28px 32px 24px 32px;
             text-align: center;
             position: relative;
-            border-bottom: 2px solid rgba(255, 99, 146, 0.15);
+            border-bottom: 2px solid rgba(199, 44, 65, 0.15);
         }
 
         /* 主要内容区域 - 明亮友好 */
@@ -270,8 +270,8 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: linear-gradient(135deg, rgba(255, 99, 146, 0.9) 0%, rgba(255, 175, 123, 0.9) 100%);
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            background: #C72C41;
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -281,16 +281,16 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 99, 146, 0.4);
+            box-shadow: 0 4px 15px rgba(199, 44, 65, 0.4);
         }
 
         .modal-close:hover {
-            background: linear-gradient(135deg, rgba(255, 99, 146, 1) 0%, rgba(255, 175, 123, 1) 100%);
+            background: #E54D66;
             transform: scale(1.15) rotate(90deg);
-            box-shadow: 0 8px 25px rgba(255, 99, 146, 0.6);
+            box-shadow: 0 8px 25px rgba(199, 44, 65, 0.6);
         }
 
-        /* 粉红色调标题设计 */
+        /* 深红色调标题设计 */
         .modal-title {
             font-size: 26px;
             font-weight: 800;
@@ -298,13 +298,13 @@
             color: #1a1a1a;
             text-shadow: none;
             letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #FF6392 0%, #FFAF7B 50%, #FFD93D 100%);
+            background: linear-gradient(135deg, #E54D66 0%, #C72C41 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        /* 粉红色调游戏简介设计 */
+        /* 深红色调游戏简介设计 */
         .modal-description {
             font-size: 18px;
             line-height: 1.6;
@@ -314,10 +314,10 @@
             text-shadow: none;
             letter-spacing: 0.3px;
             text-align: center;
-            background: rgba(255, 99, 146, 0.08);
+            background: rgba(199, 44, 65, 0.08);
             padding: 20px;
             border-radius: 16px;
-            border: 2px solid rgba(255, 99, 146, 0.15);
+            border: 2px solid rgba(199, 44, 65, 0.15);
         }
 
         .modal-features {
@@ -328,7 +328,7 @@
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 12px;
-            color: #FF6392;
+            color: #C72C41;
             text-shadow: none;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -342,9 +342,9 @@
         }
 
         .feature-tag {
-            background: linear-gradient(135deg, rgba(255, 99, 146, 0.15) 0%, rgba(255, 175, 123, 0.1) 100%);
-            color: #FF6392;
-            border: 2px solid rgba(255, 99, 146, 0.3);
+            background: rgba(199, 44, 65, 0.15);
+            color: #C72C41;
+            border: 2px solid rgba(199, 44, 65, 0.2);
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 12px;
@@ -355,9 +355,9 @@
         }
 
         .feature-tag:hover {
-            background: linear-gradient(135deg, rgba(255, 99, 146, 0.25) 0%, rgba(255, 175, 123, 0.2) 100%);
+            background: rgba(199, 44, 65, 0.25);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 99, 146, 0.3);
+            box-shadow: 0 4px 12px rgba(199, 44, 65, 0.3);
         }
 
         .modal-info {
@@ -365,10 +365,10 @@
             justify-content: space-between;
             margin-bottom: 32px;
             padding: 20px;
-            background: linear-gradient(135deg, rgba(255, 99, 146, 0.1) 0%, rgba(255, 175, 123, 0.05) 100%);
-            border: 2px solid rgba(255, 99, 146, 0.2);
+            background: rgba(199, 44, 65, 0.1);
+            border: 2px solid rgba(199, 44, 65, 0.2);
             border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(255, 99, 146, 0.1);
+            box-shadow: 0 4px 15px rgba(199, 44, 65, 0.1);
         }
 
         .info-item {
@@ -377,7 +377,7 @@
 
         .info-label {
             font-size: 12px;
-            color: #FF6392;
+            color: #C72C41;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -398,9 +398,9 @@
         }
 
         .btn-start {
-            background: linear-gradient(135deg, #FF6392 0%, #FFAF7B 50%, #FFD93D 100%);
+            background: linear-gradient(135deg, #E54D66 0%, #C72C41 100%);
             color: white;
-            border: 3px solid rgba(255, 255, 255, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.8);
             padding: 16px 40px;
             border-radius: 30px;
             font-size: 16px;
@@ -410,15 +410,15 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            box-shadow: 0 8px 25px rgba(255, 99, 146, 0.4);
+            box-shadow: 0 8px 25px rgba(199, 44, 65, 0.4);
         }
 
         .btn-start:hover {
-            background: linear-gradient(135deg, #FF477E 0%, #FF9468 50%, #FFC93D 100%);
+            background: linear-gradient(135deg, #FF5A5F 0%, #D83A4F 100%);
             border-color: rgba(255, 255, 255, 1);
             color: white;
             transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(255, 99, 146, 0.6);
+            box-shadow: 0 15px 35px rgba(199, 44, 65, 0.6);
         }
 
         .btn-start:active {
