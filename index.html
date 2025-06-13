@@ -155,7 +155,6 @@
             align-items: center;
             text-align: center;
             padding: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 25px rgba(199, 44, 65, 0.4);
             position: relative;
             overflow: hidden;
@@ -196,15 +195,15 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* 深红色调Modal样式设计 */
+        /* 全新活泼Modal设计 - 使用色块区分sections */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(199, 44, 65, 0.1) 0%, rgba(162, 36, 55, 0.15) 50%, rgba(0, 0, 0, 0.8) 100%);
-            backdrop-filter: blur(12px) saturate(120%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -212,7 +211,7 @@
             padding: 20px;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: all 0.3s ease;
         }
 
         .modal-overlay.active {
@@ -221,115 +220,95 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0.98) 0%, 
-                rgba(248, 250, 252, 0.95) 30%,
-                rgba(199, 44, 65, 0.05) 100%);
-            backdrop-filter: blur(30px) saturate(150%);
-            border: 3px solid rgba(255, 255, 255, 0.9);
-            border-radius: 32px;
+            background: #ffffff;
+            border-radius: 20px;
             padding: 0;
-            max-width: 400px;
+            max-width: 380px;
             width: 100%;
-            color: #1a1a1a;
             position: relative;
-            transform: translateY(50px) scale(0.8) rotateX(10deg);
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: translateY(30px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             overflow: hidden;
-            box-shadow: 
-                0 25px 50px rgba(199, 44, 65, 0.2),
-                0 10px 30px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
         }
 
         .modal-overlay.active .modal-content {
-            transform: translateY(0) scale(1) rotateX(0deg);
+            transform: translateY(0) scale(1);
         }
 
-        /* 深红色调头部设计 */
+        /* 标题区域 - 蓝色背景 */
         .modal-header {
-            background: linear-gradient(135deg, 
-                rgba(199, 44, 65, 0.08) 0%, 
-                rgba(162, 36, 55, 0.05) 50%,
-                rgba(255, 255, 255, 0.02) 100%);
-            padding: 28px 32px 24px 32px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            padding: 24px 32px 20px 32px;
             text-align: center;
             position: relative;
-            border-bottom: 2px solid rgba(199, 44, 65, 0.15);
         }
 
-        /* 主要内容区域 - 明亮友好 */
+        /* 主体内容区域 - 白色背景 */
         .modal-body {
-            background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0.1) 0%, 
-                rgba(248, 250, 252, 0.05) 100%);
-            padding: 32px 32px 32px 32px;
+            background: #ffffff;
+            padding: 24px 32px 28px 32px;
         }
 
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #C72C41;
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.2s ease;
             color: white;
-            box-shadow: 0 4px 15px rgba(199, 44, 65, 0.4);
         }
 
         .modal-close:hover {
-            background: #E54D66;
-            transform: scale(1.15) rotate(90deg);
-            box-shadow: 0 8px 25px rgba(199, 44, 65, 0.6);
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
 
-        /* 深红色调标题设计 */
+        /* 白色标题设计 */
         .modal-title {
-            font-size: 26px;
-            font-weight: 800;
+            font-size: 24px;
+            font-weight: 700;
             margin-bottom: 0;
-            color: #1a1a1a;
-            text-shadow: none;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #E54D66 0%, #C72C41 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* 深红色调游戏简介设计 */
-        .modal-description {
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 28px;
-            color: #333;
-            font-weight: 500;
-            text-shadow: none;
+            color: white;
             letter-spacing: 0.3px;
-            text-align: center;
-            background: rgba(199, 44, 65, 0.08);
-            padding: 20px;
-            border-radius: 16px;
-            border: 2px solid rgba(199, 44, 65, 0.15);
         }
 
+        /* 游戏简介区域 - 绿色背景 */
+        .modal-description {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: white;
+            font-weight: 500;
+            text-align: center;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: -8px -16px 24px -16px;
+        }
+
+        /* 游戏特色区域 - 紫色背景 */
         .modal-features {
             margin-bottom: 20px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 0 -16px 20px -16px;
         }
 
         .modal-features h4 {
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 12px;
-            color: #C72C41;
-            text-shadow: none;
+            color: white;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -337,38 +316,33 @@
         .feature-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 24px;
+            gap: 8px;
         }
 
         .feature-tag {
-            background: rgba(199, 44, 65, 0.15);
-            color: #C72C41;
-            border: 2px solid rgba(199, 44, 65, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
             font-size: 12px;
             font-weight: 600;
-            text-shadow: none;
-            letter-spacing: 0.3px;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .feature-tag:hover {
-            background: rgba(199, 44, 65, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(199, 44, 65, 0.3);
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
         }
 
+        /* 游戏信息区域 - 橙色背景 */
         .modal-info {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             padding: 20px;
-            background: rgba(199, 44, 65, 0.1);
-            border: 2px solid rgba(199, 44, 65, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(199, 44, 65, 0.1);
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 12px;
+            margin: 0 -16px 24px -16px;
         }
 
         .info-item {
@@ -377,73 +351,84 @@
 
         .info-label {
             font-size: 12px;
-            color: #C72C41;
+            color: white;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
+            opacity: 0.9;
         }
 
         .info-value {
             font-size: 16px;
             font-weight: 700;
-            color: #1a1a1a;
-            text-shadow: none;
+            color: white;
         }
 
         .modal-buttons {
             display: flex;
             gap: 12px;
             justify-content: center;
+            margin-top: 8px;
         }
 
         .btn-start {
-            background: linear-gradient(135deg, #E54D66 0%, #C72C41 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: white;
-            border: 3px solid rgba(255, 255, 255, 0.8);
-            padding: 16px 40px;
-            border-radius: 30px;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: 800;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            box-shadow: 0 8px 25px rgba(199, 44, 65, 0.4);
+            transition: all 0.2s ease;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
         }
 
         .btn-start:hover {
-            background: linear-gradient(135deg, #FF5A5F 0%, #D83A4F 100%);
-            border-color: rgba(255, 255, 255, 1);
-            color: white;
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(199, 44, 65, 0.6);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
         }
 
         .btn-start:active {
-            transform: translateY(-2px) scale(1.02);
+            transform: translateY(0);
         }
 
         .btn-start:disabled {
-            background: linear-gradient(135deg, rgba(200, 200, 200, 0.5) 0%, rgba(150, 150, 150, 0.5) 100%);
-            color: #999;
+            background: #9ca3af;
+            color: #6b7280;
             cursor: not-allowed;
             transform: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-color: rgba(200, 200, 200, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* 即将推出标识 */
         .coming-soon-badge {
             display: inline-block;
-            background: rgba(255, 193, 7, 0.2);
-            color: #ffcc00;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
             margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(1.05); 
+                opacity: 0.9; 
+            }
         }
 
         .loading-spinner {
@@ -787,31 +772,31 @@
                 featuresContainer.appendChild(defaultTag);
             }
 
-            // 更新开始按钮
+            // 更新开始按钮和标题标识
             const startBtn = document.getElementById('startGameBtn');
+            const titleElement = document.getElementById('modalTitle');
             const isAvailable = categoryTag === 'drinking-topics';
+            
+            // 先清理之前的标识
+            const existingBadge = titleElement.querySelector('.coming-soon-badge');
+            if (existingBadge) {
+                existingBadge.remove();
+            }
             
             if (isAvailable) {
                 startBtn.textContent = '开始游戏';
                 startBtn.disabled = false;
                 startBtn.className = 'btn-start';
-                // 移除即将推出标签
-                const badge = document.getElementById('modalTitle').querySelector('.coming-soon-badge');
-                if (badge) {
-                    badge.remove();
-                }
             } else {
-                startBtn.textContent = '即将推出';
+                startBtn.textContent = '敬请期待';
                 startBtn.disabled = true;
-                startBtn.className = 'btn-start opacity-50 cursor-not-allowed';
-                // 添加即将推出标签
-                const titleElement = document.getElementById('modalTitle');
-                if (!titleElement.querySelector('.coming-soon-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'coming-soon-badge bg-yellow-500 text-black text-xs px-2 py-1 rounded ml-2';
-                    badge.textContent = '即将推出';
-                    titleElement.appendChild(badge);
-                }
+                startBtn.className = 'btn-start';
+                
+                // 添加即将推出标识到标题旁边
+                const badge = document.createElement('span');
+                badge.className = 'coming-soon-badge';
+                badge.textContent = '即将推出';
+                titleElement.appendChild(badge);
             }
 
             // 显示模态框
