@@ -646,46 +646,86 @@
       // 异步初始化模块和游戏数据（支持离线模式）
       (async function initializeGame() {
         try {
-          // 加载必要模块
-          const supabaseModule = await import('./src/lib/supabase.js');
-          const analyticsModule = await import('./src/lib/analytics.js');
-          const offlineModule = await import('./src/lib/offline-fallback.js');
+          console.log('🚀 开始初始化游戏模块...');
+          
+          // 分别加载模块，确保每个模块的失败不影响其他模块
+          let offlineModule = null;
+          let analyticsModule = null;
+          
+          // 优先加载离线模块，这是必需的
+          try {
+            offlineModule = await import('./src/lib/offline-fallback.js');
+            console.log('✅ 离线模块加载成功');
+          } catch (offlineError) {
+            console.error('❌ 离线模块加载失败:', offlineError.message);
+            throw new Error('离线模块是必需的，初始化失败');
+          }
+          
+          // 加载分析模块（可选）
+          try {
+            analyticsModule = await import('./src/lib/analytics.js');
+            window.trackEvent = analyticsModule.trackEvent;
+            console.log('✅ Analytics模块加载成功');
+          } catch (analyticsError) {
+            console.warn('⚠️ Analytics模块加载失败:', analyticsError.message);
+            window.trackEvent = function(eventType, eventData) {
+              console.log('📊 Analytics离线模式:', eventType, eventData);
+            };
+          }
           
           // 使用混合模式函数，在线失败时自动降级到离线
           getGameCardIds = offlineModule.hybridGetGameCardIds;
           getCardById = offlineModule.hybridGetCardById;
           getGameByCategoryTag = offlineModule.hybridGetGameData;
-          window.trackEvent = analyticsModule.trackEvent;
           
-          console.log('✅ 混合模式模块加载成功');
+          console.log('✅ 混合模式模块设置成功');
           
           // 检查网络状态
           if (!navigator.onLine) {
             console.log('🔌 检测到离线状态，将使用离线数据');
-            showNetworkStatus('offline');
+            showNetworkStatus && showNetworkStatus('offline');
           } else {
             console.log('🌐 网络连接正常，将优先使用在线数据');
           }
           
           // 模块加载成功后，加载游戏数据
           await loadGameData();
-        } catch (error) {
-          console.error('❌ 初始化失败:', error);
           
-          // 尝试强制启用离线模式
+        } catch (error) {
+          console.error('❌ 初始化失败:', error.message);
+          
+          // 尝试纯离线模式作为最后手段
           try {
-            console.log('🔌 尝试强制启用离线模式...');
-            const offlineModule = await import('./src/lib/offline-fallback.js');
-            offlineModule.enableOfflineMode();
+            console.log('🔌 尝试纯离线模式...');
             
-            getGameCardIds = offlineModule.hybridGetGameCardIds;
-            getCardById = offlineModule.hybridGetCardById;
-            getGameByCategoryTag = offlineModule.hybridGetGameData;
+            // 如果离线模块可用，使用它
+            if (typeof fallbackCards !== 'undefined') {
+              console.log('✅ 检测到fallback数据，使用纯离线模式');
+              
+              // 设置简单的离线函数
+              getGameCardIds = function(gameId, category) {
+                return Promise.resolve(getOfflineCardIds ? getOfflineCardIds(category) : []);
+              };
+              getCardById = function(cardId) {
+                return Promise.resolve(getOfflineCardById ? getOfflineCardById(cardId) : null);
+              };
+              getGameByCategoryTag = function(categoryTag) {
+                return Promise.resolve(fallbackGameData || null);
+              };
+              
+              window.trackEvent = function(eventType, eventData) {
+                console.log('📊 Analytics完全离线模式:', eventType, eventData);
+              };
+              
+              await loadGameData();
+              console.log('✅ 纯离线模式启动成功');
+              return;
+            }
             
-            await loadGameData();
-            console.log('✅ 离线模式启动成功');
-          } catch (offlineError) {
-            console.error('❌ 离线模式也失败:', offlineError);
+            throw new Error('无可用的离线数据');
+            
+          } catch (fallbackError) {
+            console.error('❌ 所有初始化尝试都失败:', fallbackError.message);
             
             // 显示错误状态
             document.getElementById('loadingState').style.display = 'none';
@@ -693,7 +733,8 @@
             document.getElementById('errorState').innerHTML = `
               <div class="text-center py-8">
                 <p class="mb-4 text-lg">🚫 初始化失败</p>
-                <p class="text-sm text-gray-400 mb-6">网络连接和离线模式都失败了</p>
+                <p class="text-sm text-gray-400 mb-2">原因: ${error.message}</p>
+                <p class="text-sm text-gray-400 mb-6">所有启动方式都失败了</p>
                 <div class="space-y-3">
                   <button onclick="location.reload()" class="bg-red-500 text-white px-6 py-2 rounded-lg block w-full">重新加载</button>
                   <button onclick="window.history.back()" class="bg-gray-600 text-white px-6 py-2 rounded-lg block w-full">返回游戏库</button>

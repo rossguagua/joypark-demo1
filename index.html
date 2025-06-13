@@ -545,28 +545,68 @@
         
         (async function initializeSupabase() {
             try {
-                const supabaseModule = await import('./src/lib/supabase.js');
-                const analyticsModule = await import('./src/lib/analytics.js');
-                getGames = supabaseModule.getGames;
-                trackEvent = analyticsModule.trackEvent;
-                console.log('✅ Supabase模块加载成功');
+                console.log('🚀 开始初始化模块...');
                 
-                // 模块加载成功后，尝试从数据库加载数据
-                console.log('🔄 尝试从数据库加载数据...');
-                loadGames();
+                // 分别加载模块，避免一个失败影响另一个
+                let supabaseModule = null;
+                let analyticsModule = null;
+                
+                try {
+                    supabaseModule = await import('./src/lib/supabase.js');
+                    getGames = supabaseModule.getGames;
+                    console.log('✅ Supabase模块加载成功');
+                } catch (supabaseError) {
+                    console.warn('⚠️ Supabase模块加载失败:', supabaseError.message);
+                    getGames = null;
+                }
+                
+                try {
+                    analyticsModule = await import('./src/lib/analytics.js');
+                    trackEvent = analyticsModule.trackEvent;
+                    console.log('✅ Analytics模块加载成功');
+                } catch (analyticsError) {
+                    console.warn('⚠️ Analytics模块加载失败:', analyticsError.message);
+                    trackEvent = function(eventType, eventData) {
+                        console.log('📊 Analytics离线模式:', eventType, eventData);
+                    };
+                }
+                
+                // 尝试从数据库加载数据（只有当Supabase模块可用时）
+                if (getGames) {
+                    console.log('🔄 尝试从数据库加载数据...');
+                    loadGames();
+                } else {
+                    console.log('📄 直接使用fallback数据');
+                    // 显示警告但不阻止页面使用
+                    document.getElementById('loadingState').innerHTML = `
+                        <div class="text-center py-2 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
+                            <p class="text-yellow-400 text-sm">⚠️ 数据库模块未加载，使用本地数据</p>
+                        </div>
+                    `;
+                    document.getElementById('loadingState').style.display = 'block';
+                    
+                    // 确保使用 fallback 数据也能正常渲染页面
+                    renderGames();
+                }
+                
             } catch (error) {
-                console.warn('⚠️ Supabase模块加载失败，使用fallback数据:', error);
-                getGames = null;
+                console.error('❌ 模块初始化完全失败:', error);
                 
-                // 显示警告但不阻止页面使用
+                // 设置安全的fallback函数
+                getGames = null;
+                trackEvent = function(eventType, eventData) {
+                    console.log('📊 Analytics完全离线模式:', eventType, eventData);
+                };
+                
+                // 显示错误状态但仍然渲染页面
                 document.getElementById('loadingState').innerHTML = `
-                    <div class="text-center py-2 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
-                        <p class="text-yellow-400 text-sm">⚠️ 数据库模块未加载，使用本地数据</p>
+                    <div class="text-center py-2 mb-4 bg-red-900/20 border border-red-500/30 rounded-lg mx-6">
+                        <p class="text-red-400 text-sm">⚠️ 模块加载失败，使用离线模式</p>
                     </div>
                 `;
                 document.getElementById('loadingState').style.display = 'block';
                 
-                // 确保使用 fallback 数据也能正常渲染页面
+                // 确保页面仍然可用
                 renderGames();
             }
         })();

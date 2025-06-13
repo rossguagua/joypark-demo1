@@ -1,4 +1,24 @@
-import { supabase } from './supabase.js';
+// 延迟导入supabase以避免循环依赖和模块加载失败
+let supabase = null;
+let isSupabaseAvailable = false;
+
+// 初始化supabase连接（延迟加载）
+async function initializeSupabase() {
+  if (supabase !== null) return isSupabaseAvailable;
+  
+  try {
+    const supabaseModule = await import('./supabase.js');
+    supabase = supabaseModule.supabase;
+    isSupabaseAvailable = true;
+    console.log('✅ Analytics: Supabase连接已建立');
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Analytics: Supabase连接失败，分析功能将在静默模式下运行:', error.message);
+    supabase = null;
+    isSupabaseAvailable = false;
+    return false;
+  }
+}
 
 let eventQueue = [];
 let debounceTimer = null;
@@ -20,6 +40,14 @@ async function flushQueue() {
         return;
     }
     
+    // 尝试初始化Supabase连接
+    const supabaseReady = await initializeSupabase();
+    if (!supabaseReady) {
+        console.log('📊 Analytics: Supabase不可用，丢弃 ' + eventQueue.length + ' 个事件');
+        eventQueue = []; // 清空队列但不发送
+        return;
+    }
+    
     isFlushingQueue = true;
     const eventsToSend = [...eventQueue];
     eventQueue = [];
@@ -29,7 +57,7 @@ async function flushQueue() {
     try {
         // 检查网络连接
         if (!navigator.onLine) {
-            console.warn('网络离线，分析事件将在网络恢复后发送');
+            console.warn('📊 Analytics: 网络离线，分析事件将在网络恢复后发送');
             // 将事件重新加入队列
             eventQueue.unshift(...eventsToSend);
             return;
@@ -37,20 +65,20 @@ async function flushQueue() {
         
         const { error } = await supabase.from('analytics_events').insert(eventsToSend);
         if (error) {
-            console.warn('Analytics Batch Error:', error);
+            console.warn('📊 Analytics Batch Error:', error);
             // 如果是网络错误，重新加入队列
             if (error.message && (error.message.includes('fetch') || error.message.includes('network'))) {
-                console.warn('网络错误，事件将重新加入队列');
+                console.warn('📊 Analytics: 网络错误，事件将重新加入队列');
                 eventQueue.unshift(...eventsToSend);
             }
         } else {
-            console.log(`Successfully sent ${eventsToSend.length} analytics events`);
+            console.log(`📊 Analytics: 成功发送 ${eventsToSend.length} 个分析事件`);
         }
     } catch (err) {
-        console.warn('Failed to flush analytics queue:', err);
+        console.warn('📊 Analytics: 发送失败:', err.message);
         // 网络错误时重新加入队列
         if (err.name === 'AbortError' || err.message.includes('fetch')) {
-            console.warn('网络请求失败，事件将重新加入队列');
+            console.warn('📊 Analytics: 网络请求失败，事件将重新加入队列');
             eventQueue.unshift(...eventsToSend);
         }
     } finally {
@@ -100,6 +128,8 @@ export function trackEvent(eventType, eventData = {}) {
             event_data: eventData,
         });
 
+        console.log(`📊 Analytics: 追踪事件 ${eventType}`, eventData);
+
         // 如果定时器已存在，则清除它，重新计时
         if (debounceTimer) {
             clearTimeout(debounceTimer);
@@ -113,7 +143,7 @@ export function trackEvent(eventType, eventData = {}) {
             flushQueue();
         }
     } catch (err) {
-        console.warn('Failed to track event:', err);
+        console.warn('📊 Analytics: 追踪事件失败:', err.message);
     }
 }
 

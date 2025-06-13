@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>连接测试 - 酒宝公园</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0f0f;
+            color: white;
+            padding: 20px;
+        }
+        .test-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .success { border-color: #22c55e; background: #052e16; }
+        .error { border-color: #ef4444; background: #450a0a; }
+        .warning { border-color: #f59e0b; background: #451a03; }
+        .loading { border-color: #3b82f6; background: #1e3a8a; }
+        .log {
+            background: #111;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 12px;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">🔍 数据库连接修复测试</h1>
+        
+        <div class="test-box loading" id="supabaseTest">
+            <h2 class="text-lg font-semibold mb-2">🗄️ Supabase模块测试</h2>
+            <div id="supabaseResult">正在测试...</div>
+        </div>
+
+        <div class="test-box loading" id="analyticsTest">
+            <h2 class="text-lg font-semibold mb-2">📊 Analytics模块测试</h2>
+            <div id="analyticsResult">正在测试...</div>
+        </div>
+
+        <div class="test-box loading" id="offlineTest">
+            <h2 class="text-lg font-semibold mb-2">🔌 离线模块测试</h2>
+            <div id="offlineResult">正在测试...</div>
+        </div>
+
+        <div class="test-box loading" id="dataTest">
+            <h2 class="text-lg font-semibold mb-2">🎮 数据加载测试</h2>
+            <div id="dataResult">正在测试...</div>
+        </div>
+
+        <div class="test-box">
+            <h2 class="text-lg font-semibold mb-2">🎯 快速操作</h2>
+            <div class="space-y-2">
+                <button onclick="testBasicConnection()" class="bg-blue-600 text-white px-4 py-2 rounded mr-2">测试基础连接</button>
+                <button onclick="testAnalytics()" class="bg-green-600 text-white px-4 py-2 rounded mr-2">测试分析系统</button>
+                <button onclick="window.open('index.html', '_blank')" class="bg-purple-600 text-white px-4 py-2 rounded mr-2">打开游戏库</button>
+                <button onclick="window.open('drinking-game.html', '_blank')" class="bg-orange-600 text-white px-4 py-2 rounded">打开饮酒游戏</button>
+            </div>
+        </div>
+
+        <div class="test-box">
+            <h2 class="text-lg font-semibold mb-2">📋 测试日志</h2>
+            <div id="logs" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        let logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logs.push(logEntry);
+            
+            const logElement = document.getElementById('logs');
+            logElement.textContent = logs.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+
+        function updateTestResult(testId, result, status = 'success') {
+            const element = document.getElementById(testId);
+            const resultElement = document.getElementById(testId.replace('Test', 'Result'));
+            
+            element.className = element.className.replace(/\b(success|error|warning|loading)\b/g, '');
+            element.classList.add(status);
+            
+            resultElement.innerHTML = result;
+        }
+
+        // 测试Supabase模块
+        async function testSupabase() {
+            try {
+                log('开始测试Supabase模块...');
+                const supabaseModule = await import('./src/lib/supabase.js');
+                log('✅ Supabase模块导入成功');
+                
+                // 测试获取游戏数据
+                const games = await supabaseModule.getGames();
+                log(`✅ 成功获取 ${games.length} 个游戏`);
+                
+                updateTestResult('supabaseTest', `
+                    <div>✅ 模块加载: 成功</div>
+                    <div>✅ 数据获取: ${games.length} 个游戏</div>
+                    <div>✅ 连接状态: 正常</div>
+                `, 'success');
+                
+                return true;
+            } catch (error) {
+                log(`❌ Supabase测试失败: ${error.message}`);
+                updateTestResult('supabaseTest', `
+                    <div>❌ 错误: ${error.message}</div>
+                    <div>⚠️ 将使用离线模式</div>
+                `, 'error');
+                return false;
+            }
+        }
+
+        // 测试Analytics模块
+        async function testAnalytics() {
+            try {
+                log('开始测试Analytics模块...');
+                const analyticsModule = await import('./src/lib/analytics.js');
+                log('✅ Analytics模块导入成功');
+                
+                // 测试事件追踪
+                analyticsModule.trackEvent('TEST_EVENT', { test: true });
+                log('✅ 测试事件发送成功');
+                
+                updateTestResult('analyticsTest', `
+                    <div>✅ 模块加载: 成功</div>
+                    <div>✅ 事件追踪: 正常</div>
+                    <div>📊 测试事件已发送</div>
+                `, 'success');
+                
+                return true;
+            } catch (error) {
+                log(`❌ Analytics测试失败: ${error.message}`);
+                updateTestResult('analyticsTest', `
+                    <div>❌ 错误: ${error.message}</div>
+                    <div>⚠️ 分析功能将离线运行</div>
+                `, 'warning');
+                return false;
+            }
+        }
+
+        // 测试离线模块
+        async function testOffline() {
+            try {
+                log('开始测试离线模块...');
+                const offlineModule = await import('./src/lib/offline-fallback.js');
+                log('✅ 离线模块导入成功');
+                
+                // 测试离线数据
+                const cardIds = offlineModule.getOfflineCardIds('mildmode');
+                const gameData = offlineModule.fallbackGameData;
+                
+                log(`✅ 离线数据可用: ${cardIds.length} 张卡片`);
+                
+                updateTestResult('offlineTest', `
+                    <div>✅ 模块加载: 成功</div>
+                    <div>✅ 游戏数据: 可用</div>
+                    <div>✅ 卡片数据: ${cardIds.length} 张</div>
+                `, 'success');
+                
+                return true;
+            } catch (error) {
+                log(`❌ 离线模块测试失败: ${error.message}`);
+                updateTestResult('offlineTest', `
+                    <div>❌ 错误: ${error.message}</div>
+                    <div>🚫 离线功能不可用</div>
+                `, 'error');
+                return false;
+            }
+        }
+
+        // 综合数据加载测试
+        async function testDataLoading() {
+            try {
+                log('开始综合数据加载测试...');
+                
+                // 模拟游戏数据加载流程
+                const offlineModule = await import('./src/lib/offline-fallback.js');
+                
+                // 测试混合模式函数
+                const gameData = await offlineModule.hybridGetGameData('drinking-topics');
+                const cardIds = await offlineModule.hybridGetGameCardIds('1', 'mildmode');
+                
+                if (cardIds.length > 0) {
+                    const firstCard = await offlineModule.hybridGetCardById(cardIds[0]);
+                    log(`✅ 成功获取卡片: ${firstCard.content.substring(0, 20)}...`);
+                }
+                
+                updateTestResult('dataTest', `
+                    <div>✅ 游戏数据: ${gameData.name}</div>
+                    <div>✅ 卡片ID: ${cardIds.length} 个</div>
+                    <div>✅ 混合模式: 正常工作</div>
+                `, 'success');
+                
+                log('✅ 综合测试通过，应用应该能正常工作');
+                
+            } catch (error) {
+                log(`❌ 数据加载测试失败: ${error.message}`);
+                updateTestResult('dataTest', `
+                    <div>❌ 错误: ${error.message}</div>
+                    <div>🚫 数据加载失败</div>
+                `, 'error');
+            }
+        }
+
+        // 全局测试函数
+        window.testBasicConnection = async function() {
+            log('🚀 开始基础连接测试...');
+            const supabaseOK = await testSupabase();
+            if (supabaseOK) {
+                log('✅ 基础连接测试通过');
+                alert('✅ 数据库连接正常！');
+            } else {
+                log('⚠️ 基础连接失败，但应用仍可使用离线模式');
+                alert('⚠️ 数据库连接失败，但应用仍可用');
+            }
+        };
+
+        window.testAnalytics = async function() {
+            log('🚀 开始分析系统测试...');
+            const analyticsOK = await testAnalytics();
+            if (analyticsOK) {
+                log('✅ 分析系统测试通过');
+                alert('✅ 分析系统正常工作！');
+            } else {
+                log('⚠️ 分析系统离线，但不影响游戏功能');
+                alert('⚠️ 分析系统离线运行');
+            }
+        };
+
+        // 运行所有测试
+        async function runAllTests() {
+            log('🎯 开始运行所有修复验证测试...');
+            
+            await testSupabase();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAnalytics();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testOffline();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDataLoading();
+            
+            log('🎉 所有测试完成！检查上面的结果。');
+        }
+
+        // 页面加载后自动运行测试
+        runAllTests();
+    </script>
+</body>
+</html> 

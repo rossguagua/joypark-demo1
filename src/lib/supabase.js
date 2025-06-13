@@ -1,21 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase 配置 - 移动端兼容性修复
+// Supabase 配置 - 修复环境变量兼容性问题
 let supabaseUrl, supabaseAnonKey;
 
+// 简化的环境变量检测，避免import.meta.env兼容性问题
 try {
-  // 尝试获取环境变量（Vite环境）
-  supabaseUrl = import.meta.env?.VITE_SUPABASE_URL;
-  supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY;
+  // 检查是否在Vite环境中
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    console.log('✅ Vite环境变量已加载');
+  }
 } catch (error) {
-  console.log('环境变量不可用，使用硬编码配置');
+  console.log('⚠️ 环境变量不可用，原因:', error.message);
 }
 
-// 如果环境变量不可用，使用硬编码配置（移动端fallback）
+// 使用硬编码配置作为fallback
 if (!supabaseUrl || !supabaseAnonKey) {
   supabaseUrl = 'https://frqjqmwuznhjqukdmexg.supabase.co';
   supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycWpxbXd1em5oanF1a2RtZXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0Mzg5MzksImV4cCI6MjA2NTAxNDkzOX0.xIRuRUA9ToS6LWYfRUIHVbMsu9P5LdxY35zPC2s-E4U';
-  console.log('使用硬编码Supabase配置');
+  console.log('✅ 使用硬编码Supabase配置');
 }
 
 // 验证基本配置存在
@@ -26,13 +30,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase configuration.')
 }
 
+// 检测移动端浏览器
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 console.log('✅ Supabase配置已加载:')
 console.log('   URL:', supabaseUrl)
 console.log('   Key:', `${supabaseAnonKey.substring(0, 20)}...`)
 console.log('   移动端模式:', isMobile)
-
-// 检测移动端浏览器
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // 针对移动端优化的Supabase配置
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -52,35 +56,37 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     fetch: (url, options = {}) => {
       console.log(`🌐 Supabase请求: ${url}`);
       
-      // 移动端简化的fetch配置
+      // 统一的基础fetch配置
       const fetchOptions = {
         ...options,
         headers: {
-          ...options.headers,
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...options.headers
         }
       };
       
-      // 移动端不使用AbortController，因为可能有兼容性问题
+      // 移动端使用简化配置，桌面端使用超时控制
       if (isMobile) {
         console.log('📱 移动端模式：使用简化fetch配置');
-        return fetch(url, fetchOptions);
+        return fetch(url, fetchOptions).catch(error => {
+          console.error('📱 移动端fetch失败:', error);
+          throw error;
+        });
       } else {
-        // 桌面端使用完整配置
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          console.warn('请求超时，中止连接');
-          controller.abort();
-        }, 15000);
-        
-        return fetch(url, {
-          ...fetchOptions,
-          signal: controller.signal,
-          keepalive: true,
-          cache: 'no-cache'
-        }).finally(() => {
-          clearTimeout(timeoutId);
+        console.log('💻 桌面端模式：使用完整fetch配置');
+        // 桌面端使用超时控制
+        return Promise.race([
+          fetch(url, {
+            ...fetchOptions,
+            cache: 'no-cache'
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('请求超时')), 10000)
+          )
+        ]).catch(error => {
+          console.error('💻 桌面端fetch失败:', error);
+          throw error;
         });
       }
     }
