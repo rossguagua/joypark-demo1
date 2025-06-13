@@ -580,10 +580,12 @@
       // 异步初始化模块和游戏数据
       (async function initializeGame() {
         try {
-                          const supabaseModule = await import('./src/lib/supabase.js');
+          const supabaseModule = await import('./src/lib/supabase.js');
+          const analyticsModule = await import('./src/lib/analytics.js');
           getGameCardIds = supabaseModule.getGameCardIds;
           getCardById = supabaseModule.getCardById;
           getGameByCategoryTag = supabaseModule.getGameByCategoryTag;
+          window.trackEvent = analyticsModule.trackEvent;
           console.log('✅ Supabase模块加载成功');
           
           // 模块加载成功后，加载游戏数据
@@ -774,6 +776,11 @@
               isLoadingTopic = false;
               return;
             }
+            
+            // 追踪话题抽取事件
+            if (window.trackEvent) {
+              window.trackEvent('TOPIC_DRAW', { category: currentCategoryId });
+            }
 
             topicTextEl.textContent = card.content;
             topicTextEl.classList.remove('topic-fade-out');
@@ -805,6 +812,11 @@
         completedCount.textContent = cardIdsByCategory[currentCategoryId].length;
         currentCategoryName.textContent = categoryNames[currentCategoryId];
         
+        // 追踪分类完成事件
+        if (window.trackEvent) {
+          window.trackEvent('CATEGORY_COMPLETE', { category: currentCategoryId });
+        }
+        
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
@@ -816,6 +828,11 @@
       }
 
       window.restartCategory = function() {
+        // 追踪分类重启事件
+        if (window.trackEvent) {
+          window.trackEvent('CATEGORY_RESTART', { category: currentCategoryId });
+        }
+        
         resetCategoryCards(currentCategoryId);
         closeCompletionModal();
         

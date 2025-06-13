@@ -541,11 +541,14 @@
 
         // 异步导入Supabase模块，避免使用top-level await
         let getGames;
+        let trackEvent;
         
         (async function initializeSupabase() {
             try {
                 const supabaseModule = await import('./src/lib/supabase.js');
+                const analyticsModule = await import('./src/lib/analytics.js');
                 getGames = supabaseModule.getGames;
+                trackEvent = analyticsModule.trackEvent;
                 console.log('✅ Supabase模块加载成功');
                 
                 // 模块加载成功后，尝试从数据库加载数据
@@ -725,6 +728,11 @@
             selectedGameId = categoryTag;
             const game = gamesData.find(g => g.category_tag === categoryTag);
             
+            // 追踪游戏预览事件
+            if (trackEvent) {
+                trackEvent('GAME_VIEW', { category_tag: categoryTag });
+            }
+            
             if (!game) {
                 console.error('Game not found:', categoryTag);
                 alert('游戏信息未找到，请刷新页面重试');
@@ -793,6 +801,11 @@
             if (!selectedGameId) {
                 console.error('No game selected');
                 return;
+            }
+            
+            // 追踪游戏启动事件
+            if (trackEvent) {
+                trackEvent('GAME_START', { category_tag: selectedGameId });
             }
             
             // 只有聊天破冰盲盒可以启动
