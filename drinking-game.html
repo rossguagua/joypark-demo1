@@ -639,7 +639,7 @@
                   cardElement.style.pointerEvents = 'auto';
               } else {
                   // 下方的堆叠卡片 - 更大偏移让所有标签清楚可见
-                  const stackOffsetX = index * 15; // 增大水平偏移
+                  const stackOffsetX = index * 10; // 增大水平偏移
                   const stackOffsetY = index * -45; // 保持垂直偏移
                   const stackScale = 1 - (index * 0.04); // 稍微增大缩放差异
                   cardElement.style.transform = `translate(${stackOffsetX}px, ${stackOffsetY}px) scale(${stackScale})`;
