@@ -139,6 +139,12 @@ export async function getGames() {
 
 // 根据分类标签获取单个游戏
 export async function getGameByCategoryTag(categoryTag) {
+  // 防御性检查：确保categoryTag不为空
+  if (!categoryTag) {
+    console.warn('getGameByCategoryTag: categoryTag is undefined or empty!');
+    return null;
+  }
+  
   return retryOperation(async () => {
     const { data, error } = await supabase
       .from('games')
@@ -158,6 +164,12 @@ export async function getGameByCategoryTag(categoryTag) {
 
 // 获取指定游戏的卡片ID列表（方案A - 推荐）
 export async function getGameCardIds(gameId, category) {
+  // 防御性检查：确保gameId不为undefined
+  if (!gameId) {
+    console.warn('getGameCardIds: gameId is undefined or null!');
+    return [];
+  }
+  
   return retryOperation(async () => {
     // 只获取卡片ID列表，不获取内容
     const { data, error } = await supabase
@@ -178,6 +190,12 @@ export async function getGameCardIds(gameId, category) {
 
 // 保持向后兼容的函数（根据分类标签获取卡片ID）
 export async function getGameCardIdsByCategoryTag(categoryTag, category) {
+  // 防御性检查：确保categoryTag不为空
+  if (!categoryTag) {
+    console.warn('getGameCardIdsByCategoryTag: categoryTag is undefined or empty!');
+    return [];
+  }
+  
   // 首先获取游戏ID
   const { data: gameData, error: gameError } = await supabase
     .from('games')
@@ -191,8 +209,9 @@ export async function getGameCardIdsByCategoryTag(categoryTag, category) {
     throw gameError
   }
 
-  if (!gameData) {
-    throw new Error(`Game with category_tag "${categoryTag}" not found`)
+  if (!gameData || !gameData.id) {
+    console.warn(`Game with category_tag "${categoryTag}" not found or has no valid ID`);
+    return []; // 返回空数组而不是抛错，防止应用崩溃
   }
 
   return getGameCardIds(gameData.id, category)
@@ -200,6 +219,12 @@ export async function getGameCardIdsByCategoryTag(categoryTag, category) {
 
 // 根据卡片ID获取单张卡片内容
 export async function getCardById(cardId) {
+  // 防御性检查：确保cardId不为undefined
+  if (!cardId) {
+    console.warn('getCardById: cardId is undefined or null!');
+    return null;
+  }
+  
   return retryOperation(async () => {
     const { data, error } = await supabase
       .from('cards')
