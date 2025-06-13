@@ -27,15 +27,32 @@ async function flushQueue() {
     debounceTimer = null;
     
     try {
+        // 检查网络连接
+        if (!navigator.onLine) {
+            console.warn('网络离线，分析事件将在网络恢复后发送');
+            // 将事件重新加入队列
+            eventQueue.unshift(...eventsToSend);
+            return;
+        }
+        
         const { error } = await supabase.from('analytics_events').insert(eventsToSend);
         if (error) {
             console.warn('Analytics Batch Error:', error);
-            // 如果发送失败，可以选择重新加入队列或忽略
+            // 如果是网络错误，重新加入队列
+            if (error.message && (error.message.includes('fetch') || error.message.includes('network'))) {
+                console.warn('网络错误，事件将重新加入队列');
+                eventQueue.unshift(...eventsToSend);
+            }
         } else {
             console.log(`Successfully sent ${eventsToSend.length} analytics events`);
         }
     } catch (err) {
         console.warn('Failed to flush analytics queue:', err);
+        // 网络错误时重新加入队列
+        if (err.name === 'AbortError' || err.message.includes('fetch')) {
+            console.warn('网络请求失败，事件将重新加入队列');
+            eventQueue.unshift(...eventsToSend);
+        }
     } finally {
         isFlushingQueue = false;
     }

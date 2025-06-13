@@ -577,6 +577,36 @@
         'mildmode': '清汤 Mild Mode'
       };
 
+      // 添加网络状态监听
+      window.addEventListener('online', () => {
+        console.log('网络连接已恢复');
+        if (document.getElementById('errorState').style.display === 'block') {
+          // 如果当前显示错误状态，提示用户可以重试
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-4 left-4 right-4 bg-green-600 text-white p-3 rounded-lg z-50';
+          notification.innerHTML = '🌐 网络连接已恢复，可以重新加载游戏';
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 3000);
+        }
+      });
+
+      window.addEventListener('offline', () => {
+        console.log('网络连接已断开');
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 left-4 right-4 bg-red-600 text-white p-3 rounded-lg z-50';
+        notification.innerHTML = '⚠️ 网络连接已断开，部分功能可能不可用';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+          }
+        }, 5000);
+      });
+
       // 异步初始化模块和游戏数据
       (async function initializeGame() {
         try {
@@ -952,15 +982,33 @@
         }
       });
 
+      // 网络状态检测
+      function checkNetworkStatus() {
+        if (!navigator.onLine) {
+          throw new Error('网络连接已断开，请检查网络连接后重试');
+        }
+        
+        // 检查连接类型（如果支持）
+        if (navigator.connection) {
+          const connection = navigator.connection;
+          if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+            console.warn('检测到慢速网络连接，可能需要更长加载时间');
+          }
+        }
+      }
+
       // 初始化应用
       async function loadGameData() {
         try {
+          // 检查网络状态
+          checkNetworkStatus();
+          
           console.log('Loading game data from database...');
           const startTime = performance.now();
           
-          // 添加超时保护
+          // 针对移动端增加更长的超时保护
           const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Database connection timeout')), 10000);
+            setTimeout(() => reject(new Error('移动端网络连接超时，请检查网络后重试')), 20000);
           });
           
           // 首先获取游戏数据
@@ -977,7 +1025,7 @@
             try {
               const cardIds = await Promise.race([
                 getGameCardIds(gameData.id, categoryId),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Card loading timeout')), 5000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('卡片加载超时')), 15000))
               ]);
               console.log(`Loaded ${cardIds.length} card IDs for ${categoryId}`);
               
@@ -1018,11 +1066,48 @@
           document.getElementById('loadingState').style.display = 'none';
           document.getElementById('errorState').style.display = 'block';
           
-          // 添加详细错误信息
+          // 根据错误类型提供不同的提示和解决方案
+          let errorMessage = error.message;
+          let suggestions = '';
+          
+          if (error.message.includes('timeout') || error.message.includes('超时')) {
+            suggestions = `
+              <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                <p class="text-yellow-400 text-sm mb-2">💡 网络连接建议：</p>
+                <ul class="text-gray-300 text-xs space-y-1">
+                  <li>• 尝试切换到更稳定的WiFi网络</li>
+                  <li>• 如使用移动数据，请确保信号良好</li>
+                  <li>• 稍等片刻后重试，服务器可能暂时繁忙</li>
+                </ul>
+              </div>
+            `;
+          } else if (error.message.includes('网络连接已断开')) {
+            suggestions = `
+              <div class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                <p class="text-red-400 text-sm mb-2">🔌 请检查网络连接</p>
+                <ul class="text-gray-300 text-xs space-y-1">
+                  <li>• 确保设备已连接到互联网</li>
+                  <li>• 尝试打开其他网页确认网络正常</li>
+                </ul>
+              </div>
+            `;
+          }
+          
+          // 添加详细错误信息和建议
           document.getElementById('errorState').innerHTML = `
-            <p class="mb-4">加载游戏数据失败</p>
-            <p class="text-sm text-gray-400 mb-4">错误: ${error.message}</p>
-            <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded">重试</button>
+            <div class="text-center">
+              <p class="mb-4 text-lg">😕 加载游戏数据失败</p>
+              <p class="text-sm text-gray-400 mb-4">错误详情: ${errorMessage}</p>
+              ${suggestions}
+              <div class="mt-6 space-y-3">
+                <button onclick="location.reload()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors w-full">
+                  🔄 重新加载
+                </button>
+                <button onclick="window.location.href='index.html'" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors w-full">
+                  ⬅️ 返回游戏库
+                </button>
+              </div>
+            </div>
           `;
         }
       }
