@@ -220,7 +220,7 @@
         }
 
         .modal-content {
-            background: #ffffff;
+            background: #1a1a1a;
             border-radius: 20px;
             padding: 0;
             max-width: 380px;
@@ -229,25 +229,26 @@
             transform: translateY(30px) scale(0.9);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a2a2a;
         }
 
         .modal-overlay.active .modal-content {
             transform: translateY(0) scale(1);
         }
 
-        /* 标题区域 - 简约渐变背景 */
+        /* 标题区域 - 玫红色渐变背景 */
         .modal-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #c2185b 0%, #ad1457 100%);
             padding: 28px 32px 24px 32px;
             text-align: center;
             position: relative;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #2a2a2a;
         }
 
-        /* 主体内容区域 - 纯白背景 */
+        /* 主体内容区域 - 深灰背景 */
         .modal-body {
-            background: #ffffff;
+            background: #1a1a1a;
             padding: 32px 32px 32px 32px;
         }
 
@@ -255,8 +256,8 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -265,13 +266,13 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            color: #64748b;
+            color: #ffffff;
         }
 
         .modal-close:hover {
-            background: #e2e8f0;
-            border-color: #cbd5e1;
-            color: #475569;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
             transform: scale(1.05);
         }
 
@@ -280,7 +281,7 @@
             font-size: 26px;
             font-weight: 800;
             margin-bottom: 0;
-            color: #1e293b;
+            color: #ffffff;
             letter-spacing: 0.3px;
         }
 
@@ -289,13 +290,13 @@
             font-size: 16px;
             line-height: 1.7;
             margin-bottom: 32px;
-            color: #475569;
+            color: #ffffff;
             font-weight: 500;
             text-align: center;
-            background: #f8fafc;
+            background: #2a2a2a;
             padding: 24px;
             border-radius: 16px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #3a3a3a;
             margin: 0 0 32px 0;
         }
 
@@ -303,55 +304,40 @@
         .modal-features {
             margin-bottom: 32px;
             padding-bottom: 24px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #3a3a3a;
         }
 
         .modal-features h4 {
             font-size: 16px;
             font-weight: 700;
             margin-bottom: 16px;
-            color: #1e293b;
+            color: #ffffff;
             letter-spacing: 0.3px;
         }
 
         .feature-tags {
             display: flex;
-            flex-wrap: nowrap;
-            gap: 12px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-
-        .feature-tags::-webkit-scrollbar {
-            height: 2px;
-        }
-
-        .feature-tags::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 2px;
-        }
-
-        .feature-tags::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 2px;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
         }
 
         .feature-tag {
-            background: #f1f5f9;
-            color: #64748b;
-            padding: 8px 16px;
+            background: linear-gradient(135deg, #c2185b 0%, #ad1457 100%);
+            color: #ffffff;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             white-space: nowrap;
             transition: all 0.2s ease;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .feature-tag:hover {
-            background: #e2e8f0;
-            color: #475569;
+            background: linear-gradient(135deg, #ad1457 0%, #880e4f 100%);
             transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(194, 24, 91, 0.3);
         }
 
         /* 游戏信息区域 - 简约均分布局 */
@@ -361,20 +347,20 @@
             gap: 24px;
             margin-bottom: 32px;
             padding-bottom: 24px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #3a3a3a;
         }
 
         .info-item {
             text-align: center;
             padding: 16px;
-            background: #f8fafc;
+            background: #2a2a2a;
             border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #3a3a3a;
         }
 
         .info-label {
             font-size: 13px;
-            color: #64748b;
+            color: #c2185b;
             margin-bottom: 8px;
             font-weight: 600;
             letter-spacing: 0.3px;
@@ -383,7 +369,7 @@
         .info-value {
             font-size: 16px;
             font-weight: 700;
-            color: #1e293b;
+            color: #ffffff;
         }
 
         .modal-buttons {
@@ -394,7 +380,7 @@
         }
 
         .btn-start {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #c2185b 0%, #ad1457 100%);
             color: white;
             border: none;
             padding: 18px 32px;
@@ -405,13 +391,13 @@
             transition: all 0.3s ease;
             text-transform: none;
             letter-spacing: 0.3px;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+            box-shadow: 0 4px 15px rgba(194, 24, 91, 0.25);
         }
 
         .btn-start:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #ad1457 0%, #880e4f 100%);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+            box-shadow: 0 6px 20px rgba(194, 24, 91, 0.35);
         }
 
         .btn-start:active {
@@ -419,7 +405,7 @@
         }
 
         .btn-start:disabled {
-            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            background: linear-gradient(135deg, #666666 0%, #555555 100%);
             color: white;
             cursor: not-allowed;
             transform: none;
@@ -546,7 +532,7 @@
                 name: '🍻 聊天破冰盲盒',
                 category_tag: 'drinking-topics',
                 description: '🔥 一秒打破社恐，瞬间变身话题王！让聚会嗨起来的神器！',
-                features: ['🎯 破冰神器', '💬 话题无限', '🎉 氛围爆棚', '🍷 微醺必备'],
+                features: ['四种辣度', '聚会破冰', '随机话题', '微醺必备'],
                 players: '2-8人',
                 duration: '15-30分钟',
                 is_active: true,
