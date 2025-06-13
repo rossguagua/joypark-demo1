@@ -609,9 +609,9 @@
                 console.log('Loading games from database...');
                 const startTime = performance.now();
                 
-                // 添加超时保护，避免长时间卡在加载状态
+                // 移动端友好的超时保护
                 const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Database connection timeout')), 5000);
+                    setTimeout(() => reject(new Error('移动端数据库连接超时')), 15000);
                 });
                 
                 // 只获取游戏基础信息，不包含卡片数据和图片URL
@@ -846,9 +846,88 @@
             });
         });
 
-        // 应用初始化
-        console.log('🚀 正在初始化应用...');
-        // renderGames() 将在 Supabase 初始化完成后调用
+        // 主页面网络状态显示
+        function showMainPageNetworkStatus(status) {
+            const existingNotification = document.querySelector('.main-network-status-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            let message, bgColor;
+            if (status === 'offline') {
+                message = '🔌 离线模式：使用测试数据';
+                bgColor = 'bg-orange-600';
+            } else if (status === 'online') {
+                message = '🌐 数据已更新';
+                bgColor = 'bg-green-600';
+            } else {
+                return;
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `main-network-status-notification fixed top-4 left-4 right-4 ${bgColor} text-white p-3 rounded-lg z-50 text-center text-sm`;
+            notification.innerHTML = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s';
+                    setTimeout(() => {
+                        if (document.body.contains(notification)) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 500);
+                }
+            }, 2000);
+        }
+
+        // 添加主页面网络状态监听
+        window.addEventListener('online', () => {
+            console.log('主页面：网络连接已恢复');
+            showMainPageNetworkStatus('online');
+            // 网络恢复时重新尝试加载数据
+            setTimeout(() => {
+                loadGames();
+            }, 1000);
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('主页面：网络连接已断开');
+            showMainPageNetworkStatus('offline');
+        });
+
+        // 应用初始化 - 支持离线模式
+        async function initializeMainPage() {
+            console.log('🚀 正在初始化应用...');
+            
+            // 首先渲染fallback数据
+            renderGames();
+            
+            // 初始化分析模块
+            try {
+                const analyticsModule = await import('./src/lib/analytics.js');
+                window.trackEvent = analyticsModule.trackEvent;
+                console.log('✅ 分析模块加载成功');
+            } catch (error) {
+                console.log('⚠️ 分析模块加载失败，继续正常运行:', error.message);
+                window.trackEvent = null;
+            }
+            
+            // 检查网络状态并相应处理
+            if (!navigator.onLine) {
+                console.log('🔌 检测到离线状态，使用fallback数据');
+                showMainPageNetworkStatus('offline');
+            } else {
+                console.log('🌐 网络连接正常，尝试加载在线数据');
+                await loadGames();
+            }
+            
+            console.log('✅ 应用初始化完成');
+        }
+        
+        // 启动应用
+        initializeMainPage();
     </script>
 </body>
 </html>

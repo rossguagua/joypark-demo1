@@ -577,6 +577,42 @@
         'mildmode': '清汤 Mild Mode'
       };
 
+      // 显示网络状态通知
+      function showNetworkStatus(status) {
+        const existingNotification = document.querySelector('.network-status-notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        let message, bgColor;
+        if (status === 'offline') {
+          message = '🔌 离线模式：使用本地数据，功能有限';
+          bgColor = 'bg-orange-600';
+        } else if (status === 'online') {
+          message = '🌐 在线模式：正在使用最新数据';
+          bgColor = 'bg-green-600';
+        } else {
+          return;
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `network-status-notification fixed top-4 left-4 right-4 ${bgColor} text-white p-3 rounded-lg z-50 text-center`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+              if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+              }
+            }, 500);
+          }
+        }, 3000);
+      }
+
       // 添加网络状态监听
       window.addEventListener('online', () => {
         console.log('网络连接已恢复');
@@ -607,30 +643,64 @@
         }, 5000);
       });
 
-      // 异步初始化模块和游戏数据
+      // 异步初始化模块和游戏数据（支持离线模式）
       (async function initializeGame() {
         try {
+          // 加载必要模块
           const supabaseModule = await import('./src/lib/supabase.js');
           const analyticsModule = await import('./src/lib/analytics.js');
-          getGameCardIds = supabaseModule.getGameCardIds;
-          getCardById = supabaseModule.getCardById;
-          getGameByCategoryTag = supabaseModule.getGameByCategoryTag;
+          const offlineModule = await import('./src/lib/offline-fallback.js');
+          
+          // 使用混合模式函数，在线失败时自动降级到离线
+          getGameCardIds = offlineModule.hybridGetGameCardIds;
+          getCardById = offlineModule.hybridGetCardById;
+          getGameByCategoryTag = offlineModule.hybridGetGameData;
           window.trackEvent = analyticsModule.trackEvent;
-          console.log('✅ Supabase模块加载成功');
+          
+          console.log('✅ 混合模式模块加载成功');
+          
+          // 检查网络状态
+          if (!navigator.onLine) {
+            console.log('🔌 检测到离线状态，将使用离线数据');
+            showNetworkStatus('offline');
+          } else {
+            console.log('🌐 网络连接正常，将优先使用在线数据');
+          }
           
           // 模块加载成功后，加载游戏数据
           await loadGameData();
         } catch (error) {
           console.error('❌ 初始化失败:', error);
           
-          // 显示错误状态
-          document.getElementById('loadingState').style.display = 'none';
-          document.getElementById('errorState').style.display = 'block';
-          document.getElementById('errorState').innerHTML = `
-            <p class="mb-4">游戏初始化失败</p>
-            <p class="text-sm text-gray-400 mb-4">错误: ${error.message}</p>
-            <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded">重试</button>
-          `;
+          // 尝试强制启用离线模式
+          try {
+            console.log('🔌 尝试强制启用离线模式...');
+            const offlineModule = await import('./src/lib/offline-fallback.js');
+            offlineModule.enableOfflineMode();
+            
+            getGameCardIds = offlineModule.hybridGetGameCardIds;
+            getCardById = offlineModule.hybridGetCardById;
+            getGameByCategoryTag = offlineModule.hybridGetGameData;
+            
+            await loadGameData();
+            console.log('✅ 离线模式启动成功');
+          } catch (offlineError) {
+            console.error('❌ 离线模式也失败:', offlineError);
+            
+            // 显示错误状态
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorState').innerHTML = `
+              <div class="text-center py-8">
+                <p class="mb-4 text-lg">🚫 初始化失败</p>
+                <p class="text-sm text-gray-400 mb-6">网络连接和离线模式都失败了</p>
+                <div class="space-y-3">
+                  <button onclick="location.reload()" class="bg-red-500 text-white px-6 py-2 rounded-lg block w-full">重新加载</button>
+                  <button onclick="window.history.back()" class="bg-gray-600 text-white px-6 py-2 rounded-lg block w-full">返回游戏库</button>
+                </div>
+              </div>
+            `;
+          }
         }
       })();
 
