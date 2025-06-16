@@ -502,42 +502,8 @@
     </div>
 
     <script type="module">
-        // 先定义基础数据，确保页面能快速显示
-        let gamesData = [
-            {
-                id: '1',
-                name: '🍻 聊天破冰盲盒',
-                category_tag: 'drinking-topics',
-                description: '🔥 一秒打破社恐，瞬间变身话题王！让聚会嗨起来的神器！',
-                features: ['四种辣度', '聚会破冰', '随机话题', '微醺必备'],
-                players: '2-8人',
-                duration: '15-30分钟',
-                is_active: true,
-                created_at: new Date().toISOString()
-            },
-            {
-                id: '2',
-                name: '🧠 心理测试游戏',
-                category_tag: 'party-psychology',
-                description: '🔮 窥探内心的神秘世界，揭秘你不知道的自己！',
-                features: ['🧩 性格解析', '🎭 趣味互动', '💫 惊喜连连'],
-                players: '2-6人',
-                duration: '20-40分钟',
-                is_active: true,
-                created_at: new Date().toISOString()
-            },
-            {
-                id: '3',
-                name: '🃏 德州扑克',
-                category_tag: 'poker',
-                description: '♠️ 经典扑克巅峰对决，智慧与运气的完美碰撞！',
-                features: ['🎯 策略博弈', '🔥 经典玩法', '💰 刺激对战'],
-                players: '3-8人',
-                duration: '30-60分钟',
-                is_active: true,
-                created_at: new Date().toISOString()
-            }
-        ];
+        // 游戏数据将从数据库加载
+        let gamesData = [];
 
         // 全局变量
         let getGames = null;
@@ -573,65 +539,37 @@
             return `images/covers/${fileName}`;
         }
 
-        // 优化后的游戏加载函数 - 只获取核心数据，不包含图片URL
+        // 从数据库加载游戏数据
         async function loadGames() {
             // 确保 getGames 函数存在且可用
             if (!getGames || typeof getGames !== 'function') {
-                console.warn('getGames function not available, using fallback data');
-                renderGames();
-                return;
+                throw new Error('数据库连接模块未加载');
             }
 
-            try {
-                console.log('Loading games from database...');
-                const startTime = performance.now();
-                
-                // 移动端友好的超时保护
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('移动端数据库连接超时')), 15000);
-                });
-                
-                // 只获取游戏基础信息，不包含卡片数据和图片URL
-                const games = await Promise.race([getGames(), timeoutPromise]);
-                
-                const loadTime = performance.now() - startTime;
-                console.log(`Games loaded in ${loadTime.toFixed(2)}ms:`, games);
-                
-                // 只有在成功获取到数据时才更新
-                if (games && games.length > 0) {
-                    gamesData = games;
-                    renderGames();
-                    
-                    // 隐藏加载状态
-                    document.getElementById('loadingState').style.display = 'none';
-                    console.log('✅ 数据库数据加载成功，已替换fallback数据');
-                } else {
-                    console.log('⚠️ 数据库返回空数据，继续使用fallback数据');
-                    // 更新状态提示但不阻止页面显示
-                    document.getElementById('loadingState').innerHTML = `
-                        <div class="text-center py-2 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
-                            <p class="text-yellow-400 text-sm">⚠️ 数据库数据为空，正在使用测试数据</p>
-                        </div>
-                    `;
-                    renderGames();
-                }
-            } catch (error) {
-                console.error('Error loading games:', error);
-                console.log('数据库连接失败，继续使用fallback数据...');
-                
-                // 显示错误提示，但不阻止页面功能
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="text-center py-4 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
-                        <p class="text-yellow-400 text-sm mb-2">⚠️ 数据库连接失败，正在使用测试数据</p>
-                        <p class="text-gray-400 text-xs">请检查Supabase配置后刷新页面</p>
-                        <button onclick="location.reload()" class="bg-yellow-500 text-black px-3 py-1 rounded text-xs mt-2">重试连接</button>
-                    </div>
-                `;
-                document.getElementById('loadingState').style.display = 'block';
-                
-                // 确保即使数据库连接失败也能显示fallback数据
-                renderGames();
+            console.log('从数据库加载游戏数据...');
+            const startTime = performance.now();
+            
+            // 设置超时保护
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('数据库连接超时')), 15000);
+            });
+            
+            // 从数据库获取游戏数据
+            const games = await Promise.race([getGames(), timeoutPromise]);
+            
+            const loadTime = performance.now() - startTime;
+            console.log(`Games loaded in ${loadTime.toFixed(2)}ms:`, games);
+            
+            // 验证数据
+            if (!games || !Array.isArray(games) || games.length === 0) {
+                throw new Error('数据库返回空数据或无效数据');
             }
+            
+            // 更新游戏数据并渲染
+            gamesData = games;
+            renderGames();
+            
+            console.log('✅ 数据库数据加载成功');
         }
 
         // 渲染游戏列表 - 使用本地图片路径
@@ -824,90 +762,61 @@
             });
         });
 
-        // 主页面网络状态显示
-        function showMainPageNetworkStatus(status) {
-            const existingNotification = document.querySelector('.main-network-status-notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-            
-            let message, bgColor;
-            if (status === 'offline') {
-                message = '🔌 离线模式：使用测试数据';
-                bgColor = 'bg-orange-600';
-            } else if (status === 'online') {
-                message = '🌐 数据已更新';
-                bgColor = 'bg-green-600';
-            } else {
-                return;
-            }
-            
-            const notification = document.createElement('div');
-            notification.className = `main-network-status-notification fixed top-4 left-4 right-4 ${bgColor} text-white p-3 rounded-lg z-50 text-center text-sm`;
-            notification.innerHTML = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                if (document.body.contains(notification)) {
-                    notification.style.opacity = '0';
-                    notification.style.transition = 'opacity 0.5s';
-                    setTimeout(() => {
-                        if (document.body.contains(notification)) {
-                            document.body.removeChild(notification);
-                        }
-                    }, 500);
-                }
-            }, 2000);
-        }
 
-        // 添加主页面网络状态监听
+
+        // 网络状态监听（简化版）
         window.addEventListener('online', () => {
             console.log('主页面：网络连接已恢复');
-            showMainPageNetworkStatus('online');
-            // 网络恢复时重新尝试加载数据
-            setTimeout(() => {
-                loadGames();
-            }, 1000);
+            // 如果当前显示错误状态，可以选择重新加载
+            const loadingElement = document.getElementById('loadingState');
+            if (loadingElement && loadingElement.innerHTML.includes('数据库连接失败')) {
+                window.location.reload();
+            }
         });
 
-        window.addEventListener('offline', () => {
-            console.log('主页面：网络连接已断开');
-            showMainPageNetworkStatus('offline');
-        });
-
-        // 应用初始化 - 支持离线模式，修复race condition
+        // 应用初始化 - 直接连接数据库
         async function initializeMainPage() {
             console.log('🚀 正在初始化应用...');
             
-            // 首先渲染fallback数据，确保页面立即可用
-            renderGames();
+            // 显示加载状态
+            const loadingElement = document.getElementById('loadingState');
+            loadingElement.innerHTML = `
+                <div class="text-center py-8 px-6">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+                    <p class="text-white text-lg">正在连接数据库...</p>
+                </div>
+            `;
+            loadingElement.style.display = 'block';
             
             try {
-                // 尝试加载Supabase模块
-                console.log('🔄 尝试加载Supabase模块...');
+                // 加载Supabase模块
+                console.log('🔄 正在加载数据库模块...');
                 const supabaseModule = await import('./src/lib/supabase.js');
                 getGames = supabaseModule.getGames;
-                console.log('✅ Supabase模块加载成功');
+                console.log('✅ 数据库模块加载成功');
                 
-                // 只有在成功加载模块后才尝试从数据库加载数据
-                if (navigator.onLine) {
-                    console.log('🌐 网络连接正常，尝试加载在线数据');
-                    await loadGames();
-                } else {
-                    console.log('🔌 检测到离线状态，使用fallback数据');
-                    showMainPageNetworkStatus('offline');
-                }
+                // 从数据库加载数据
+                console.log('🌐 正在从数据库加载游戏数据...');
+                await loadGames();
+                
+                // 隐藏加载状态
+                loadingElement.style.display = 'none';
+                console.log('✅ 应用初始化完成');
+                
             } catch (error) {
-                console.warn('⚠️ Supabase模块加载失败，使用fallback数据:', error);
-                getGames = null;
+                console.error('❌ 应用初始化失败:', error);
                 
-                // 显示警告但不阻止页面使用
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="text-center py-2 mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg mx-6">
-                        <p class="text-yellow-400 text-sm">⚠️ 数据库模块未加载，使用本地数据</p>
+                // 显示错误状态
+                loadingElement.innerHTML = `
+                    <div class="text-center py-8 px-6">
+                        <div class="text-red-500 text-6xl mb-4">⚠️</div>
+                        <p class="text-white text-lg mb-2">数据库连接失败</p>
+                        <p class="text-gray-400 text-sm mb-4">${error.message}</p>
+                        <button onclick="window.location.reload()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg">
+                            重新加载
+                        </button>
                     </div>
                 `;
-                document.getElementById('loadingState').style.display = 'block';
             }
             
             // 初始化分析模块
@@ -919,8 +828,6 @@
                 console.log('⚠️ 分析模块加载失败，继续正常运行:', error.message);
                 trackEvent = null;
             }
-            
-            console.log('✅ 应用初始化完成');
         }
         
         // 启动应用
