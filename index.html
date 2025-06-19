@@ -774,7 +774,7 @@
             }
         });
 
-        // 应用初始化 - 直接连接数据库
+        // 应用初始化 - 优化的混合模式，优先离线模式以避免iOS兼容性问题
         async function initializeMainPage() {
             console.log('🚀 正在初始化应用...');
             
@@ -783,21 +783,55 @@
             loadingElement.innerHTML = `
                 <div class="text-center py-8 px-6">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                    <p class="text-white text-lg">正在连接数据库...</p>
+                    <p class="text-white text-lg">正在初始化游戏库...</p>
                 </div>
             `;
             loadingElement.style.display = 'block';
             
+            // 初始化分析模块（简化版，不会失败）
             try {
-                // 加载Supabase模块
-                console.log('🔄 正在加载数据库模块...');
-                const supabaseModule = await import('./src/lib/supabase.js');
-                getGames = supabaseModule.getGames;
-                console.log('✅ 数据库模块加载成功');
+                const analyticsModule = await import('./src/lib/analytics.js');
+                trackEvent = analyticsModule.trackEvent;
+                console.log('✅ 简化分析模块加载成功');
+            } catch (error) {
+                console.log('⚠️ 分析模块加载失败，使用静默模式:', error.message);
+                trackEvent = function(eventType, eventData) {
+                    console.log('📊 Analytics静默模式:', eventType, eventData);
+                };
+            }
+            
+            try {
+                // 首先尝试加载离线数据作为fallback
+                let offlineGamesLoaded = false;
+                try {
+                    const offlineModule = await import('./src/lib/offline-fallback.js');
+                    if (offlineModule.fallbackGamesData) {
+                        gamesData = offlineModule.fallbackGamesData;
+                        displayGames();
+                        offlineGamesLoaded = true;
+                        console.log('✅ 离线游戏数据加载成功');
+                    }
+                } catch (offlineError) {
+                    console.log('⚠️ 离线数据不可用:', offlineError.message);
+                }
                 
-                // 从数据库加载数据
-                console.log('🌐 正在从数据库加载游戏数据...');
-                await loadGames();
+                // 然后尝试从数据库获取最新数据（可选）
+                try {
+                    console.log('🔄 尝试从数据库获取最新数据...');
+                    const supabaseModule = await import('./src/lib/supabase.js');
+                    getGames = supabaseModule.getGames;
+                    const onlineGames = await getGames();
+                    if (onlineGames && onlineGames.length > 0) {
+                        gamesData = onlineGames;
+                        displayGames();
+                        console.log('✅ 在线游戏数据加载成功，已更新');
+                    }
+                } catch (onlineError) {
+                    console.log('⚠️ 在线数据获取失败，使用离线数据:', onlineError.message);
+                    if (!offlineGamesLoaded) {
+                        throw new Error('离线和在线数据都不可用');
+                    }
+                }
                 
                 // 隐藏加载状态
                 loadingElement.style.display = 'none';
@@ -806,27 +840,22 @@
             } catch (error) {
                 console.error('❌ 应用初始化失败:', error);
                 
-                // 显示错误状态
+                // 显示错误状态，但提供降级选项
                 loadingElement.innerHTML = `
                     <div class="text-center py-8 px-6">
-                        <div class="text-red-500 text-6xl mb-4">⚠️</div>
-                        <p class="text-white text-lg mb-2">数据库连接失败</p>
+                        <div class="text-yellow-500 text-6xl mb-4">⚠️</div>
+                        <p class="text-white text-lg mb-2">初始化遇到问题</p>
                         <p class="text-gray-400 text-sm mb-4">${error.message}</p>
-                        <button onclick="window.location.reload()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg">
-                            重新加载
-                        </button>
+                        <div class="space-y-3">
+                            <button onclick="window.location.reload()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg block w-full">
+                                重新加载
+                            </button>
+                            <button onclick="window.location.href='drinking-game.html'" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg block w-full">
+                                直接进入破冰盲盒
+                            </button>
+                        </div>
                     </div>
                 `;
-            }
-            
-            // 初始化分析模块
-            try {
-                const analyticsModule = await import('./src/lib/analytics.js');
-                trackEvent = analyticsModule.trackEvent;
-                console.log('✅ 分析模块加载成功');
-            } catch (error) {
-                console.log('⚠️ 分析模块加载失败，继续正常运行:', error.message);
-                trackEvent = null;
             }
         }
         
