@@ -807,7 +807,7 @@
                     const offlineModule = await import('./src/lib/offline-fallback.js');
                     if (offlineModule.fallbackGamesData) {
                         gamesData = offlineModule.fallbackGamesData;
-                        displayGames();
+                        renderGames();
                         offlineGamesLoaded = true;
                         console.log('✅ 离线游戏数据加载成功');
                     }
@@ -823,7 +823,7 @@
                     const onlineGames = await getGames();
                     if (onlineGames && onlineGames.length > 0) {
                         gamesData = onlineGames;
-                        displayGames();
+                        renderGames();
                         console.log('✅ 在线游戏数据加载成功，已更新');
                     }
                 } catch (onlineError) {

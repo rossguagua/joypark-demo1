@@ -14,6 +14,109 @@ export const fallbackGameData = {
   created_at: new Date().toISOString()
 };
 
+// 游戏数组数据（用于主页显示）
+export const fallbackGamesData = [
+  {
+    id: 'offline-drinking-topics',
+    name: '聊天破冰盲盒',
+    category_tag: 'drinking-topics',
+    description: '每句话都是命运的🎲 用盲盒话题开启今晚的聊天，打破沉默，快速拉近距离！',
+    features: ['随机话题抽取', '四种辣度等级', '适合聚会破冰'],
+    players: '2-10人',
+    duration: '15-30分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-battle-royale',
+    name: '得吃大逃杀',
+    category_tag: 'battle-royale',
+    description: '紧张刺激的生存竞技游戏，在酒桌上展开一场智慧与运气的较量！',
+    features: ['策略对战', '淘汰机制', '团队合作'],
+    players: '4-8人',
+    duration: '20-40分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-kiss-marks',
+    name: '二本吻痕',
+    category_tag: 'kiss-marks',
+    description: '浪漫互动游戏，通过有趣的挑战和任务增进彼此了解和亲密度。',
+    features: ['浪漫互动', '情侣专属', '增进感情'],
+    players: '2-6人',
+    duration: '10-25分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-party-psychology',
+    name: '派对心理学',
+    category_tag: 'party-psychology',
+    description: '通过心理测试和性格分析，深入了解朋友们的内心世界和真实想法。',
+    features: ['心理测试', '性格分析', '深度交流'],
+    players: '3-8人',
+    duration: '15-30分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-wisdom',
+    name: '酒宝急生智',
+    category_tag: 'wisdom',
+    description: '考验知识储备和反应速度的智力竞赛，看谁能在酒桌上展现最强大脑！',
+    features: ['知识竞赛', '快速抢答', '智力挑战'],
+    players: '2-8人',
+    duration: '10-20分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-man-di-piao-ling',
+    name: '满地飘零',
+    category_tag: 'man-di-piao-ling',
+    description: '创意表演和即兴发挥的游戏，让每个人都能展现自己的艺术天赋。',
+    features: ['创意表演', '即兴发挥', '艺术展示'],
+    players: '3-10人',
+    duration: '15-35分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-moon-night',
+    name: '酒宝月圆夜',
+    category_tag: 'moon-night',
+    description: '经典狼人杀游戏的酒桌版本，在推理和欺骗中寻找真相！',
+    features: ['角色扮演', '逻辑推理', '心理博弈'],
+    players: '6-12人',
+    duration: '30-60分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-love-battle',
+    name: '纯爱大作战',
+    category_tag: 'love-battle',
+    description: '甜蜜的恋爱主题游戏，通过各种浪漫挑战增进情侣或朋友间的感情。',
+    features: ['恋爱主题', '甜蜜挑战', '情感升温'],
+    players: '2-8人',
+    duration: '15-30分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'offline-poker',
+    name: '德州扑克牌',
+    category_tag: 'poker',
+    description: '经典的德州扑克游戏，考验你的牌技、心理素质和运气！',
+    features: ['经典扑克', '策略博弈', '技巧竞技'],
+    players: '2-9人',
+    duration: '20-45分钟',
+    is_active: true,
+    created_at: new Date().toISOString()
+  }
+];
+
 // 离线模式的话题数据
 export const fallbackCards = {
   // 清汤 Mild Mode - 温和话题
